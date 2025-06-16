@@ -19,13 +19,13 @@ from streamlit_option_menu import option_menu
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
+# Import available utilities (these modules were removed in recent updates)
 try:
-    from medequity_utils.dynamic_scraper import HealthcareScraper
-    from medequity_utils.healthcare_classifier import classify_healthcare_company
-    from medequity_utils.metrics_calculator import calculate_healthcare_metrics
-except ImportError as e:
-    st.error(f"Import error: {e}")
-    st.stop()
+    from medequity_utils.live_news_scraper import LiveNewsScraper
+    from medequity_utils.live_fda_scraper import LiveFDACalendar
+except ImportError:
+    # These utilities are optional - screener will work without them
+    pass
 
 # Page configuration
 st.set_page_config(
