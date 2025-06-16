@@ -652,6 +652,18 @@ def show_assumptions_input():
     
     st.markdown("### 📝 DCF Assumptions")
     
+    # Initialize default values
+    revenue_growth_y1 = 10
+    revenue_growth_y5 = 5
+    revenue_growth_terminal = 2.5
+    base_ebitda_margin = 20.0
+    target_ebitda_margin = 25.0
+    wacc = 10.0
+    tax_rate = 21
+    capex_revenue = 4.0
+    da_revenue = 3.0
+    nwc_revenue = 1.0
+    
     # Check if we have company data loaded
     if 'company_data' not in st.session_state:
         st.info("👆 Please load company data first to auto-populate financial metrics")
@@ -667,9 +679,13 @@ def show_assumptions_input():
             
             with col2:
                 shares_outstanding = st.number_input("Shares Outstanding (M)", value=100.0, step=1.0)
-                base_ebitda_margin = st.number_input("Current EBITDA Margin (%)", value=20.0, step=1.0)
-                estimated_wacc = st.number_input("Estimated WACC (%)", value=10.0, step=0.5)
+                base_ebitda_margin_input = st.number_input("Current EBITDA Margin (%)", value=20.0, step=1.0)
+                estimated_wacc_input = st.number_input("Estimated WACC (%)", value=10.0, step=0.5)
                 net_debt = st.number_input("Net Debt ($M)", value=0.0, step=50.0)
+            
+            # Update default values with manual inputs
+            base_ebitda_margin = base_ebitda_margin_input
+            wacc = estimated_wacc_input
         
         # Store manual assumptions
         if 'dcf_assumptions' not in st.session_state:
@@ -678,8 +694,8 @@ def show_assumptions_input():
                 'base_revenue': base_revenue if 'base_revenue' in locals() else 1000.0,
                 'current_stock_price': current_stock_price if 'current_stock_price' in locals() else 100.0,
                 'shares_outstanding': shares_outstanding if 'shares_outstanding' in locals() else 100.0,
-                'base_ebitda_margin': base_ebitda_margin if 'base_ebitda_margin' in locals() else 20.0,
-                'wacc': estimated_wacc if 'estimated_wacc' in locals() else 10.0,
+                'base_ebitda_margin': base_ebitda_margin,
+                'wacc': wacc,
                 'net_debt': net_debt if 'net_debt' in locals() else 0.0
             }
     
@@ -694,6 +710,12 @@ def show_assumptions_input():
             <p><strong>Industry:</strong> {company_data['company_info']['industry']} | <strong>Sector:</strong> {company_data['company_info']['sector']}</p>
         </div>
         """, unsafe_allow_html=True)
+        
+        # Update defaults with company data
+        base_ebitda_margin = company_data['financial_metrics'].get('ebitda_margin', 20.0)
+        wacc = company_data['growth_metrics'].get('estimated_wacc', 10.0)
+        historical_growth = company_data['growth_metrics'].get('revenue_cagr_3y', 10)
+        capex_revenue = company_data['financial_metrics'].get('capex_revenue_ratio', 4.0)
     
     # Forward-looking assumptions (the only inputs user needs to provide)
     st.markdown("#### 🔮 Forward-Looking Assumptions (Your Predictions)")
@@ -738,21 +760,18 @@ def show_assumptions_input():
         
         col1, col2 = st.columns(2)
         
-        # Get current margins from loaded data
-        current_ebitda_margin = st.session_state.get('company_data', {}).get('financial_metrics', {}).get('ebitda_margin', 20.0)
-        
         with col1:
             base_ebitda_margin = st.slider(
                 "Current EBITDA Margin (%)", 
                 0, 60, 
-                int(current_ebitda_margin), 
+                int(base_ebitda_margin), 
                 help="Starting point (auto-filled from company data)",
                 disabled=True if 'company_data' in st.session_state else False
             )
         
         with col2:
             # Suggest modest improvement
-            suggested_target = min(current_ebitda_margin + 3, 50)
+            suggested_target = min(base_ebitda_margin + 3, 50)
             target_ebitda_margin = st.slider(
                 "Target EBITDA Margin (%)", 
                 0, 60, 
@@ -763,14 +782,11 @@ def show_assumptions_input():
     with st.expander("🎯 Valuation Parameters", expanded=True):
         col1, col2 = st.columns(2)
         
-        # Get estimated WACC from loaded data
-        estimated_wacc = st.session_state.get('company_data', {}).get('growth_metrics', {}).get('estimated_wacc', 10.0)
-        
         with col1:
             wacc = st.slider(
                 "WACC - Weighted Average Cost of Capital (%)", 
                 6.0, 18.0, 
-                estimated_wacc, 
+                wacc, 
                 step=0.5,
                 help="Discount rate (auto-estimated based on beta and company risk)"
             )
@@ -786,12 +802,10 @@ def show_assumptions_input():
         col1, col2 = st.columns(2)
         
         with col1:
-            # Use historical capex ratio if available
-            historical_capex_ratio = st.session_state.get('company_data', {}).get('financial_metrics', {}).get('capex_revenue_ratio', 4.0)
             capex_revenue = st.slider(
                 "Capex as % of Revenue (%)", 
                 0.0, 15.0, 
-                historical_capex_ratio, 
+                capex_revenue, 
                 step=0.5
             )
             
@@ -816,10 +830,10 @@ def show_assumptions_input():
             'revenue_growth_terminal': revenue_growth_terminal,
             'base_ebitda_margin': base_ebitda_margin,
             'target_ebitda_margin': target_ebitda_margin,
-            'da_revenue': da_revenue if 'da_revenue' in locals() else 3.0,
+            'da_revenue': da_revenue,
             'tax_rate': tax_rate,
-            'capex_revenue': capex_revenue if 'capex_revenue' in locals() else historical_capex_ratio,
-            'nwc_revenue': nwc_revenue if 'nwc_revenue' in locals() else 1.0,
+            'capex_revenue': capex_revenue,
+            'nwc_revenue': nwc_revenue,
             'wacc': wacc,
             'net_debt': company_data['balance_sheet']['net_debt'],
             'historical_data': {
@@ -827,6 +841,26 @@ def show_assumptions_input():
                 'revenue_cagr_5y': company_data['growth_metrics']['revenue_cagr_5y'],
                 'free_cf_ttm': company_data['financial_metrics']['free_cf_ttm']
             }
+        }
+    else:
+        # Manual input mode
+        st.session_state.dcf_assumptions = {
+            'company_name': company_name if 'company_name' in locals() else 'Manual Input',
+            'ticker': 'MANUAL',
+            'base_revenue': base_revenue if 'base_revenue' in locals() else 1000.0,
+            'current_stock_price': current_stock_price if 'current_stock_price' in locals() else 100.0,
+            'shares_outstanding': shares_outstanding if 'shares_outstanding' in locals() else 100.0,
+            'revenue_growth_y1': revenue_growth_y1,
+            'revenue_growth_y5': revenue_growth_y5,
+            'revenue_growth_terminal': revenue_growth_terminal,
+            'base_ebitda_margin': base_ebitda_margin,
+            'target_ebitda_margin': target_ebitda_margin,
+            'da_revenue': da_revenue,
+            'tax_rate': tax_rate,
+            'capex_revenue': capex_revenue,
+            'nwc_revenue': nwc_revenue,
+            'wacc': wacc,
+            'net_debt': net_debt if 'net_debt' in locals() else 0.0,
         }
     
     # Show assumption summary

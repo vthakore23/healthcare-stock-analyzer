@@ -3,648 +3,588 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import requests
-from bs4 import BeautifulSoup
-import feedparser
-import json
-import time
-import re
-from urllib.parse import urljoin, urlparse
+import sys
+import os
+
+# Add the medequity_utils directory to the path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'medequity_utils'))
+
+try:
+    from live_fda_scraper import LiveFDAScaper
+except ImportError:
+    st.error("Could not import FDA scraper. Please check the installation.")
+    st.stop()
 
 # Page configuration
 st.set_page_config(
-    page_title="FDA Calendar - Healthcare Analyzer | June 2025",
+    page_title="FDA Calendar & Drug Approvals",
     page_icon="🏥",
     layout="wide"
 )
 
-# Enhanced CSS
+# Custom CSS
 st.markdown("""
 <style>
-    .fda-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .event-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin: 1rem 0;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-left: 4px solid;
-        transition: transform 0.2s ease;
-    }
-    
-    .event-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    
-    .pdufa-date { border-left-color: #ff6b6b; }
-    .advisory-committee { border-left-color: #4ecdc4; }
-    .approval { border-left-color: #45b7d1; }
-    .rejection { border-left-color: #96ceb4; }
-    .clinical-hold { border-left-color: #ffeaa7; }
-    .breakthrough { border-left-color: #fd79a8; }
-    
-    .article-link {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 500;
-        margin-right: 1rem;
-    }
-    
-    .article-link:hover {
-        text-decoration: underline;
-    }
-    
-    .news-source {
-        background: #f8f9fa;
-        padding: 0.5rem;
-        border-radius: 6px;
-        margin: 0.5rem 0;
-        border-left: 3px solid #667eea;
-    }
-    
-    .real-time-badge {
-        background: #28a745;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
+.fda-header {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.event-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+    border-left: 5px solid #ff6b6b;
+}
+
+.pdufa-event {
+    border-left-color: #ee5a24;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.advisory-committee {
+    border-left-color: #ffa726;
+    background: linear-gradient(135deg, #fffbf0 0%, #fff3e0 100%);
+}
+
+.fda-news {
+    border-left-color: #42a5f5;
+    background: linear-gradient(135deg, #f3f8ff 0%, #e3f2fd 100%);
+}
+
+.high-risk {
+    border-left-color: #e53e3e;
+}
+
+.medium-risk {
+    border-left-color: #ffa726;
+}
+
+.low-risk {
+    border-left-color: #66bb6a;
+}
+
+.days-until {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.major-impact {
+    background: #ffebee;
+    color: #c62828;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.moderate-impact {
+    background: #fff3e0;
+    color: #ef6c00;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.market-cap {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.news-link {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 500;
+    margin-right: 1rem;
+}
+
+.news-link:hover {
+    text-decoration: underline;
+}
+
+.risk-high {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.risk-medium {
+    color: #f57c00;
+    font-weight: bold;
+}
+
+.risk-low {
+    color: #388e3c;
+    font-weight: bold;
+}
 </style>
 """, unsafe_allow_html=True)
-
-class FDADataScraper:
-    """Enhanced FDA data scraper with real-time capabilities"""
-    
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        })
-        
-    def scrape_fda_approvals(self):
-        """Scrape real FDA approvals and news"""
-        events = []
-        
-        try:
-            # FDA RSS feeds
-            fda_feeds = [
-                'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/drug-approvals/rss.xml',
-                'https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-news-releases/rss.xml'
-            ]
-            
-            for feed_url in fda_feeds:
-                try:
-                    feed = feedparser.parse(feed_url)
-                    for entry in feed.entries[:10]:  # Last 10 entries
-                        events.append({
-                            'title': entry.title,
-                            'link': entry.link,
-                            'published': entry.published,
-                            'summary': entry.summary if hasattr(entry, 'summary') else '',
-                            'source': 'FDA Official'
-                        })
-                except Exception as e:
-                    continue
-                    
-        except Exception as e:
-            st.warning(f"Note: Live FDA data temporarily unavailable. Showing recent data.")
-            
-        return events
-    
-    def scrape_biotech_news(self):
-        """Scrape biotech and pharma news from multiple sources"""
-        news_items = []
-        
-        # BioPharma Dive RSS
-        try:
-            feed = feedparser.parse('https://www.biopharmadive.com/feeds/')
-            for entry in feed.entries[:15]:
-                if any(keyword in entry.title.lower() for keyword in ['fda', 'approval', 'pdufa', 'advisory', 'drug']):
-                    news_items.append({
-                        'title': entry.title,
-                        'link': entry.link,
-                        'published': entry.published,
-                        'source': 'BioPharma Dive',
-                        'summary': entry.summary if hasattr(entry, 'summary') else ''
-                    })
-        except:
-            pass
-            
-        # FiercePharma RSS
-        try:
-            feed = feedparser.parse('https://www.fiercepharma.com/rss/xml')
-            for entry in feed.entries[:15]:
-                if any(keyword in entry.title.lower() for keyword in ['fda', 'approval', 'pdufa', 'advisory', 'drug']):
-                    news_items.append({
-                        'title': entry.title,
-                        'link': entry.link,
-                        'published': entry.published,
-                        'source': 'FiercePharma',
-                        'summary': entry.summary if hasattr(entry, 'summary') else ''
-                    })
-        except:
-            pass
-            
-        return news_items
-    
-    def get_clinical_trials_data(self):
-        """Get clinical trials data from ClinicalTrials.gov"""
-        trials = []
-        
-        try:
-            # This would normally scrape ClinicalTrials.gov
-            # For demo purposes, we'll simulate realistic data
-            pass
-        except:
-            pass
-            
-        return trials
 
 def main():
     st.markdown("""
     <div class="fda-header">
-        <h1>🏥 FDA Regulatory Calendar</h1>
-        <p style="font-size: 1.2rem;">Real-time FDA approvals, PDUFA dates, and regulatory milestones - June 2025</p>
-        <span class="real-time-badge">🔴 LIVE DATA</span>
+        <h1>🏥 FDA Calendar & Drug Approvals</h1>
+        <p style="font-size: 1.2rem;">Track PDUFA dates, FDA decisions, and regulatory milestones</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Initialize scraper
+    # Initialize the FDA scraper
     if 'fda_scraper' not in st.session_state:
-        st.session_state.fda_scraper = FDADataScraper()
+        st.session_state.fda_scraper = LiveFDAScaper()
     
-    # Create tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📅 Live FDA Events", "📰 Latest News", "🧪 Clinical Trials", "📊 Analytics"])
+    # Sidebar filters
+    st.sidebar.header("🔍 Filter FDA Events")
+    
+    days_ahead = st.sidebar.slider(
+        "Days Ahead to Show",
+        7, 365, 60,
+        help="Number of days ahead to look for FDA events"
+    )
+    
+    event_types = st.sidebar.multiselect(
+        "Event Types",
+        ["PDUFA/FDA Milestone", "FDA Announcement", "FDA News"],
+        default=["PDUFA/FDA Milestone", "FDA Announcement", "FDA News"]
+    )
+    
+    risk_levels = st.sidebar.multiselect(
+        "Risk Levels",
+        ["High", "Medium", "Low"],
+        default=["High", "Medium", "Low"]
+    )
+    
+    show_past_events = st.sidebar.checkbox(
+        "Include Recent Past Events",
+        value=True,
+        help="Show FDA events from the last 30 days"
+    )
+    
+    # Load FDA calendar data
+    with st.spinner("🔄 Loading live FDA calendar data..."):
+        fda_events = st.session_state.fda_scraper.get_live_fda_calendar(days_ahead)
+    
+    if not fda_events:
+        st.error("Could not load FDA calendar data. Please try again later.")
+        return
+    
+    # Filter events
+    filtered_events = []
+    for event in fda_events:
+        # Event type filter
+        if event.get('event_type') not in event_types:
+            continue
+            
+        # Risk level filter
+        if event.get('risk_level') and event.get('risk_level') not in risk_levels:
+            continue
+            
+        # Past events filter
+        if not show_past_events and event.get('days_until', 0) < 0:
+            continue
+            
+        filtered_events.append(event)
+    
+    # Main content tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📅 Upcoming Events", "📊 Event Analytics", "🧪 Clinical Trials", "📈 Market Impact"])
     
     with tab1:
-        show_live_fda_events()
+        show_upcoming_events(filtered_events)
     
     with tab2:
-        show_latest_news()
+        show_event_analytics(filtered_events)
     
     with tab3:
         show_clinical_trials()
     
     with tab4:
-        show_fda_analytics()
+        show_market_impact(filtered_events)
 
-def show_live_fda_events():
-    """Show live FDA events with real data"""
-    st.markdown("### 📅 Live FDA Events & Milestones")
+def show_upcoming_events(events):
+    """Display upcoming FDA events"""
     
-    col1, col2 = st.columns([1, 3])
+    if not events:
+        st.info("No FDA events match your current filters. Try adjusting the criteria.")
+        return
     
-    with col1:
-        if st.button("🔄 Refresh Data", type="primary"):
-            st.rerun()
-        
-        st.markdown("**Filter Options:**")
-        event_type = st.selectbox("Event Type:", 
-                                 ["All", "PDUFA Date", "Advisory Committee", "Breakthrough Designation", "Approval", "Clinical Hold"])
-        
-        time_frame = st.selectbox("Time Frame:", 
-                                 ["Next 30 Days", "Next 90 Days", "Next 6 Months", "All Upcoming"])
+    # Key metrics
+    upcoming_pdufa = len([e for e in events if e.get('event_type') == 'PDUFA/FDA Milestone' and e.get('days_until', 0) > 0])
+    high_risk_events = len([e for e in events if e.get('risk_level') == 'High'])
+    total_market_cap = sum([e.get('market_cap', 0) for e in events if e.get('market_cap')])
     
-    with col2:
-        # Get real-time data
-        with st.spinner("🔍 Fetching real-time FDA data..."):
-            events = get_enhanced_fda_events()
-            
-        display_enhanced_events(events, event_type, time_frame)
-
-def show_latest_news():
-    """Show latest FDA and biotech news with article links"""
-    st.markdown("### 📰 Latest FDA & Biotech News")
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        if st.button("🔄 Refresh News", type="primary"):
-            st.rerun()
-        
-        st.markdown("**News Sources:**")
-        sources = ["FDA Official", "BioPharma Dive", "FiercePharma", "Endpoints News", "STAT News"]
-        selected_sources = st.multiselect("Select Sources:", sources, default=sources[:3])
-    
-    with col2:
-        # Get real-time news
-        with st.spinner("📡 Fetching latest news..."):
-            news_items = get_latest_fda_news()
-            
-        display_news_feed(news_items, selected_sources)
-
-def show_clinical_trials():
-    """Show clinical trials information"""
-    st.markdown("### 🧪 Clinical Trials & Pipeline Updates")
-    
-    # Real clinical trials data
-    trials_data = get_clinical_trials_updates()
-    display_clinical_trials(trials_data)
-
-def show_fda_analytics():
-    """Show FDA analytics and trends"""
-    st.markdown("### 📊 FDA Analytics & Trends")
-    
-    # Analytics metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("📋 YTD Approvals", "127", "+15")
-        st.metric("📅 This Month", "18", "+3")
+        st.metric("📅 Upcoming PDUFA Dates", upcoming_pdufa)
     
     with col2:
-        st.metric("🎯 Pending PDUFA", "23", "-2")
-        st.metric("🏛️ AdCom Meetings", "8", "+1")
+        st.metric("⚠️ High Risk Events", high_risk_events)
     
     with col3:
-        st.metric("🚀 Breakthrough Des.", "45", "+7")
-        st.metric("⏸️ Clinical Holds", "12", "-1")
+        st.metric("💰 Total Market Cap at Risk", f"${total_market_cap/1e9:.0f}B")
     
     with col4:
-        st.metric("🧬 Oncology Approvals", "39", "+6")
-        st.metric("💊 Generic Approvals", "284", "+22")
+        st.metric("📊 Total Events", len(events))
     
-    # Create analytics charts
-    create_fda_analytics_charts()
-
-def get_enhanced_fda_events():
-    """Get enhanced FDA events with real data integration"""
-    # Enhanced June 2025 FDA events with real company data
-    events = [
-        {
-            "date": datetime(2025, 6, 20),
-            "company": "Eli Lilly",
-            "ticker": "LLY",
-            "drug": "Donanemab",
-            "indication": "Alzheimer's Disease",
-            "event_type": "PDUFA Date",
-            "therapeutic_area": "CNS",
-            "probability": "High",
-            "market_cap": 588000000000,
-            "phase": "Phase 3",
-            "articles": [
-                {
-                    "title": "Lilly's Alzheimer's drug donanemab nears FDA decision",
-                    "url": "https://www.fiercepharma.com/pharma/lilly-alzheimers-donanemab-fda-pdufa",
-                    "source": "FiercePharma"
-                },
-                {
-                    "title": "FDA Advisory Committee recommends donanemab approval",
-                    "url": "https://www.biopharmadive.com/news/lilly-donanemab-fda-approval",
-                    "source": "BioPharma Dive"
-                }
-            ]
-        },
-        {
-            "date": datetime(2025, 6, 25),
-            "company": "Vertex Pharmaceuticals",
-            "ticker": "VRTX",
-            "drug": "VX-264",
-            "indication": "Alpha-1 Antitrypsin Deficiency",
-            "event_type": "Advisory Committee",
-            "therapeutic_area": "Rare Disease",
-            "probability": "High",
-            "market_cap": 118000000000,
-            "phase": "Phase 3",
-            "articles": [
-                {
-                    "title": "Vertex's VX-264 shows promise in rare lung disease",
-                    "url": "https://www.endpoints.com/vertex-vx264-alpha1-antitrypsin",
-                    "source": "Endpoints News"
-                }
-            ]
-        },
-        {
-            "date": datetime(2025, 6, 28),
-            "company": "Moderna",
-            "ticker": "MRNA",
-            "drug": "mRNA-1345",
-            "indication": "RSV Vaccine (Older Adults)",
-            "event_type": "PDUFA Date",
-            "therapeutic_area": "Vaccines",
-            "probability": "High",
-            "market_cap": 52000000000,
-            "phase": "Phase 3",
-            "articles": [
-                {
-                    "title": "Moderna's RSV vaccine seeks FDA approval for seniors",
-                    "url": "https://www.statnews.com/moderna-rsv-vaccine-fda-approval",
-                    "source": "STAT News"
-                }
-            ]
-        },
-        {
-            "date": datetime(2025, 7, 3),
-            "company": "Gilead Sciences",
-            "ticker": "GILD",
-            "drug": "Lenacapavir",
-            "indication": "HIV PrEP",
-            "event_type": "Breakthrough Designation",
-            "therapeutic_area": "Infectious Disease",
-            "probability": "Medium",
-            "market_cap": 84000000000,
-            "phase": "Phase 3",
-            "articles": [
-                {
-                    "title": "Gilead's lenacapavir shows 100% efficacy in HIV prevention",
-                    "url": "https://www.fiercepharma.com/pharma/gilead-lenacapavir-hiv-prep-results",
-                    "source": "FiercePharma"
-                }
-            ]
-        },
-        {
-            "date": datetime(2025, 7, 8),
-            "company": "Roche",
-            "ticker": "RHHBY",
-            "drug": "Gantenerumab",
-            "indication": "Alzheimer's Disease",
-            "event_type": "Advisory Committee",
-            "therapeutic_area": "CNS",
-            "probability": "Medium",
-            "market_cap": 281000000000,
-            "phase": "Phase 3",
-            "articles": [
-                {
-                    "title": "Roche's Alzheimer's drug faces FDA scrutiny",
-                    "url": "https://www.biopharmadive.com/news/roche-gantenerumab-alzheimers-fda",
-                    "source": "BioPharma Dive"
-                }
-            ]
-        },
-        {
-            "date": datetime(2025, 7, 12),
-            "company": "Amgen",
-            "ticker": "AMGN",
-            "drug": "Tarlatamab",
-            "indication": "Small Cell Lung Cancer",
-            "event_type": "PDUFA Date",
-            "therapeutic_area": "Oncology",
-            "probability": "High",
-            "market_cap": 162000000000,
-            "phase": "Phase 2",
-            "articles": [
-                {
-                    "title": "Amgen's lung cancer drug nears FDA approval",
-                    "url": "https://www.endpoints.com/amgen-tarlatamab-sclc-fda",
-                    "source": "Endpoints News"
-                }
-            ]
-        }
-    ]
+    st.markdown("---")
     
-    return events
-
-def get_latest_fda_news():
-    """Get latest FDA news with real article links"""
-    news_items = [
-        {
-            "title": "FDA Approves Lilly's Mounjaro for Weight Management in Adolescents",
-            "url": "https://www.fda.gov/news-events/press-announcements/fda-approves-mounjaro-weight-management-adolescents",
-            "source": "FDA Official",
-            "published": "2025-06-15",
-            "summary": "The FDA has approved tirzepatide (Mounjaro) for chronic weight management in adolescents aged 12 years and older with obesity."
-        },
-        {
-            "title": "FDA Grants Accelerated Approval to Gilead's CAR-T Therapy",
-            "url": "https://www.biopharmadive.com/news/gilead-car-t-fda-approval-2025",
-            "source": "BioPharma Dive",
-            "published": "2025-06-14",
-            "summary": "Gilead Sciences receives accelerated approval for its next-generation CAR-T cell therapy for relapsed lymphoma."
-        },
-        {
-            "title": "Vertex Cystic Fibrosis Drug Gets FDA Priority Review",
-            "url": "https://www.fiercepharma.com/pharma/vertex-cf-drug-priority-review-2025",
-            "source": "FiercePharma",
-            "published": "2025-06-13",
-            "summary": "FDA grants priority review to Vertex's new cystic fibrosis treatment, with PDUFA date set for October 2025."
-        },
-        {
-            "title": "FDA Advisory Committee Recommends Approval of Moderna's Next-Gen COVID Vaccine",
-            "url": "https://www.statnews.com/2025/06/12/moderna-covid-vaccine-fda-advisory-committee",
-            "source": "STAT News",
-            "published": "2025-06-12",
-            "summary": "Advisory committee votes 12-1 in favor of Moderna's updated COVID-19 vaccine targeting 2025 variants."
-        },
-        {
-            "title": "FDA Issues Complete Response Letter to Biogen's ALS Drug",
-            "url": "https://www.endpoints.com/biogen-als-drug-crl-fda-2025",
-            "source": "Endpoints News",
-            "published": "2025-06-11",
-            "summary": "Biogen receives Complete Response Letter for its investigational ALS treatment, citing manufacturing concerns."
-        }
-    ]
+    # Upcoming events timeline
+    st.markdown("#### 📅 Upcoming FDA Events Timeline")
     
-    return news_items
-
-def get_clinical_trials_updates():
-    """Get clinical trials updates"""
-    trials = [
-        {
-            "sponsor": "Pfizer",
-            "drug": "PF-06946860",
-            "indication": "Ulcerative Colitis",
-            "phase": "Phase 3",
-            "status": "Recruiting",
-            "expected_completion": "2025-12-31",
-            "enrollment": "750 patients"
-        },
-        {
-            "sponsor": "Johnson & Johnson",
-            "drug": "JNJ-64041757",
-            "indication": "Major Depressive Disorder",
-            "phase": "Phase 2",
-            "status": "Active",
-            "expected_completion": "2025-09-15",
-            "enrollment": "320 patients"
-        },
-        {
-            "sponsor": "Regeneron",
-            "drug": "REGN5678",
-            "indication": "Diabetic Retinopathy",
-            "phase": "Phase 3",
-            "status": "Recruiting",
-            "expected_completion": "2026-03-30",
-            "enrollment": "890 patients"
-        }
-    ]
+    # Sort events by date
+    sorted_events = sorted(events, key=lambda x: x.get('event_date', datetime.now()))
     
-    return trials
-
-def display_enhanced_events(events, event_type_filter, time_frame_filter):
-    """Display enhanced FDA events with article links"""
-    
-    # Apply filters
-    filtered_events = events.copy()
-    
-    if event_type_filter != "All":
-        filtered_events = [e for e in filtered_events if e['event_type'] == event_type_filter]
-    
-    # Time frame filter
-    cutoff_date = datetime.now()
-    if time_frame_filter == "Next 30 Days":
-        cutoff_date += timedelta(days=30)
-    elif time_frame_filter == "Next 90 Days":
-        cutoff_date += timedelta(days=90)
-    elif time_frame_filter == "Next 6 Months":
-        cutoff_date += timedelta(days=180)
-    
-    if time_frame_filter != "All Upcoming":
-        filtered_events = [e for e in filtered_events if e['date'] <= cutoff_date]
-    
-    st.markdown(f"### 📋 Upcoming Events ({len(filtered_events)} found)")
-    
-    # Display events with enhanced information
-    for event in sorted(filtered_events, key=lambda x: x['date']):
-        event_class = get_event_class(event['event_type'])
-        days_until = (event['date'] - datetime.now()).days
+    for event in sorted_events[:15]:  # Show top 15 events
+        
+        # Determine card class based on event type
+        card_class = "event-card"
+        if event.get('event_type') == 'PDUFA/FDA Milestone':
+            card_class += " pdufa-event"
+        elif event.get('catalyst_type') == 'FDA Advisory Committee':
+            card_class += " advisory-committee"
+        elif event.get('event_type') == 'FDA News':
+            card_class += " fda-news"
+        
+        # Risk level styling
+        risk_class = ""
+        if event.get('risk_level'):
+            risk_class = f"risk-{event.get('risk_level').lower()}"
+        
+        # Days until styling
+        days_until = event.get('days_until', 0)
+        days_text = ""
+        if days_until > 0:
+            days_text = f"<span class='days-until'>In {days_until} days</span>"
+        elif days_until == 0:
+            days_text = "<span class='days-until' style='background: #ffcdd2; color: #c62828;'>Today</span>"
+        else:
+            days_text = f"<span class='days-until' style='background: #f3e5f5; color: #7b1fa2;'>{abs(days_until)} days ago</span>"
+        
+        # Market impact styling
+        impact_class = ""
+        if event.get('market_impact') == 'Major':
+            impact_class = "major-impact"
+        elif event.get('market_impact') == 'Moderate':
+            impact_class = "moderate-impact"
+        
+        # Format market cap
+        market_cap_text = ""
+        if event.get('market_cap'):
+            market_cap_b = event.get('market_cap') / 1e9
+            market_cap_text = f"<div class='market-cap'>${market_cap_b:.0f}B Market Cap</div>"
+        
+        # News links
+        news_links_html = ""
+        if event.get('news_links'):
+            links = []
+            for link in event.get('news_links', [])[:3]:  # Limit to 3 links
+                links.append(f"<a href='{link.get('url', '#')}' target='_blank' class='news-link'>📰 {link.get('source', 'News')}</a>")
+            news_links_html = "".join(links)
         
         st.markdown(f"""
-        <div class="event-card {event_class}">
-            <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div class="{card_class}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">
-                    <h3>{event['company']} ({event['ticker']})</h3>
-                    <h4 style="color: #667eea; margin: 0.5rem 0;">{event['drug']} - {event['indication']}</h4>
-                    <p><strong>📅 Event:</strong> {event['event_type']}</p>
-                    <p><strong>🗓️ Date:</strong> {event['date'].strftime('%B %d, %Y')} ({days_until} days)</p>
-                    <p><strong>🧬 Therapeutic Area:</strong> {event['therapeutic_area']}</p>
-                    <p><strong>🧪 Phase:</strong> {event['phase']}</p>
+                    <h4>{event.get('title', 'FDA Event')}</h4>
+                    <div style="margin: 0.5rem 0;">
+                        {days_text}
+                        {f'<span class="{impact_class}" style="margin-left: 0.5rem;">{event.get("market_impact", "")}</span>' if event.get('market_impact') else ''}
+                        {f'<span class="{risk_class}" style="margin-left: 0.5rem;">Risk: {event.get("risk_level", "")}</span>' if event.get('risk_level') else ''}
+                    </div>
+                    {f'<p><strong>Company:</strong> {event.get("company", "N/A")}</p>' if event.get('company') else ''}
+                    {f'<p><strong>Drug:</strong> {event.get("drug_name", "N/A")}</p>' if event.get('drug_name') else ''}
+                    {f'<p><strong>Indication:</strong> {event.get("indication", "N/A")}</p>' if event.get('indication') else ''}
+                    {f'<p><strong>Event Type:</strong> {event.get("catalyst_type", event.get("event_type", "N/A"))}</p>'}
+                    <div style="font-size: 0.9rem; color: #666; margin-top: 1rem;">
+                        <strong>Date:</strong> {event.get('date_formatted', 'N/A')} | <strong>Source:</strong> {event.get('source', 'FDA')}
+                    </div>
+                    {f'<div style="margin-top: 0.5rem;">{news_links_html}</div>' if news_links_html else ''}
                 </div>
                 <div style="text-align: right; margin-left: 1rem;">
-                    <div style="background-color: {'#d4edda' if event['probability'] == 'High' else '#fff3cd' if event['probability'] == 'Medium' else '#f8d7da'}; 
-                                 padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;">
-                        <strong>{event['probability']} Probability</strong>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                        Market Cap: ${event['market_cap']/1e9:.1f}B
-                    </div>
+                    {market_cap_text}
+                    {f'<div style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">Ticker: {event.get("ticker", "N/A")}</div>' if event.get('ticker') else ''}
                 </div>
             </div>
+        </div>
         """, unsafe_allow_html=True)
+    
+    # Search functionality
+    st.markdown("---")
+    st.markdown("#### 🔍 Search FDA Events")
+    
+    search_term = st.text_input("Search by company, drug, or indication:")
+    
+    if search_term:
+        search_results = []
+        search_term = search_term.lower()
         
-        # Display article links
-        if event.get('articles'):
-            st.markdown("**📰 Related Articles:**")
-            for article in event['articles']:
+        for event in events:
+            # Search in multiple fields
+            search_fields = [
+                event.get('title', ''),
+                event.get('company', ''),
+                event.get('drug_name', ''),
+                event.get('indication', ''),
+                event.get('description', '')
+            ]
+            
+            if any(search_term in field.lower() for field in search_fields):
+                search_results.append(event)
+        
+        if search_results:
+            st.markdown(f"Found {len(search_results)} events matching '{search_term}':")
+            
+            for event in search_results[:5]:
                 st.markdown(f"""
-                <div class="news-source">
-                    <a href="{article['url']}" target="_blank" class="article-link">
-                        📖 {article['title']}
-                    </a>
-                    <br><small>Source: {article['source']}</small>
-                </div>
-                """, unsafe_allow_html=True)
+                **{event.get('title', 'FDA Event')}**  
+                🏢 Company: {event.get('company', 'N/A')} | 💊 Drug: {event.get('drug_name', 'N/A')}  
+                📅 Date: {event.get('date_formatted', 'N/A')} | ⚠️ Risk: {event.get('risk_level', 'N/A')}  
+                """)
+        else:
+            st.info(f"No events found matching '{search_term}'")
+
+def show_event_analytics(events):
+    """Show FDA event analytics"""
+    
+    if not events:
+        st.info("No events to analyze with current filters.")
+        return
+    
+    # Timeline chart
+    st.markdown("#### 📊 FDA Events Timeline")
+    
+    # Group events by month
+    monthly_data = {}
+    for event in events:
+        if event.get('event_date'):
+            month_key = event['event_date'].strftime('%Y-%m')
+            if month_key not in monthly_data:
+                monthly_data[month_key] = {'PDUFA': 0, 'News': 0, 'Other': 0}
+            
+            if event.get('event_type') == 'PDUFA/FDA Milestone':
+                monthly_data[month_key]['PDUFA'] += 1
+            elif event.get('event_type') == 'FDA News':
+                monthly_data[month_key]['News'] += 1
+            else:
+                monthly_data[month_key]['Other'] += 1
+    
+    if monthly_data:
+        months = sorted(monthly_data.keys())
+        pdufa_counts = [monthly_data[m]['PDUFA'] for m in months]
+        news_counts = [monthly_data[m]['News'] for m in months]
+        other_counts = [monthly_data[m]['Other'] for m in months]
         
-        st.markdown("</div>", unsafe_allow_html=True)
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=months, y=pdufa_counts, name='PDUFA/Milestones', marker_color='#ee5a24'))
+        fig.add_trace(go.Bar(x=months, y=news_counts, name='FDA News', marker_color='#42a5f5'))
+        fig.add_trace(go.Bar(x=months, y=other_counts, name='Other Events', marker_color='#66bb6a'))
+        
+        fig.update_layout(
+            title="FDA Events by Month",
+            xaxis_title="Month",
+            yaxis_title="Number of Events",
+            barmode='stack'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Risk analysis
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### ⚠️ Risk Level Distribution")
+        
+        risk_counts = {}
+        for event in events:
+            risk = event.get('risk_level', 'Unknown')
+            risk_counts[risk] = risk_counts.get(risk, 0) + 1
+        
+        if risk_counts:
+            fig = px.pie(
+                values=list(risk_counts.values()),
+                names=list(risk_counts.keys()),
+                title="Events by Risk Level",
+                color_discrete_map={'High': '#e53e3e', 'Medium': '#ffa726', 'Low': '#66bb6a'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        st.markdown("#### 🏥 Therapeutic Areas")
+        
+        indication_counts = {}
+        for event in events:
+            indication = event.get('indication', 'Other')
+            indication_counts[indication] = indication_counts.get(indication, 0) + 1
+        
+        if indication_counts:
+            # Sort by count and take top 5
+            top_indications = sorted(indication_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            fig = px.bar(
+                x=[item[1] for item in top_indications],
+                y=[item[0] for item in top_indications],
+                orientation='h',
+                title="Top Therapeutic Areas"
+            )
+            fig.update_traces(marker_color='#ff6b6b')
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Market impact analysis
+    st.markdown("#### 💰 Market Impact Analysis")
+    
+    impact_data = {}
+    impact_market_cap = {}
+    
+    for event in events:
+        impact = event.get('market_impact', 'Unknown')
+        market_cap = event.get('market_cap', 0)
+        
+        impact_data[impact] = impact_data.get(impact, 0) + 1
+        impact_market_cap[impact] = impact_market_cap.get(impact, 0) + market_cap
+    
+    if impact_data:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Number of events by impact
+            fig = px.bar(
+                x=list(impact_data.keys()),
+                y=list(impact_data.values()),
+                title="Events by Market Impact",
+                color=list(impact_data.keys()),
+                color_discrete_map={'Major': '#e53e3e', 'Moderate': '#ffa726', 'Minor': '#66bb6a'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            # Market cap at risk by impact
+            market_cap_b = {k: v/1e9 for k, v in impact_market_cap.items() if v > 0}
+            if market_cap_b:
+                fig = px.bar(
+                    x=list(market_cap_b.keys()),
+                    y=list(market_cap_b.values()),
+                    title="Market Cap at Risk ($B)",
+                    color=list(market_cap_b.keys()),
+                    color_discrete_map={'Major': '#e53e3e', 'Moderate': '#ffa726', 'Minor': '#66bb6a'}
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
-def display_news_feed(news_items, selected_sources):
-    """Display news feed with article links"""
+def show_clinical_trials():
+    """Show clinical trials information"""
     
-    filtered_news = [item for item in news_items if item['source'] in selected_sources]
+    st.markdown("#### 🧪 Key Clinical Trials & Studies")
     
-    st.markdown(f"### 📰 Latest News ({len(filtered_news)} articles)")
+    # Get clinical trials data
+    trials_data = st.session_state.fda_scraper.get_clinical_trials_data()
     
-    for item in filtered_news:
-        st.markdown(f"""
-        <div class="event-card">
-            <h4><a href="{item['url']}" target="_blank" class="article-link">{item['title']}</a></h4>
-            <p style="color: #666; margin: 0.5rem 0;">{item['summary']}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                <span style="background: #667eea; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">
-                    {item['source']}
-                </span>
-                <span style="color: #666; font-size: 0.9rem;">{item['published']}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-def display_clinical_trials(trials_data):
-    """Display clinical trials information"""
-    
-    st.markdown("### 🧪 Active Clinical Trials")
-    
-    for trial in trials_data:
-        st.markdown(f"""
-        <div class="event-card">
-            <h4>{trial['sponsor']} - {trial['drug']}</h4>
-            <p><strong>Indication:</strong> {trial['indication']}</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
-                <div>
-                    <p><strong>Phase:</strong> {trial['phase']}</p>
-                    <p><strong>Status:</strong> {trial['status']}</p>
+    if trials_data:
+        for trial in trials_data:
+            st.markdown(f"""
+            <div class="event-card">
+                <h4>{trial.get('title', 'Clinical Trial')}</h4>
+                <div style="margin: 0.5rem 0;">
+                    <strong>Sponsor:</strong> {trial.get('sponsor', 'N/A')} | 
+                    <strong>Phase:</strong> {trial.get('phase', 'N/A')} | 
+                    <strong>Status:</strong> {trial.get('status', 'N/A')}
                 </div>
-                <div>
-                    <p><strong>Enrollment:</strong> {trial['enrollment']}</p>
-                    <p><strong>Expected Completion:</strong> {trial['expected_completion']}</p>
-                </div>
+                <p><strong>Condition:</strong> {trial.get('condition', 'N/A')}</p>
+                <p><strong>Enrollment:</strong> {trial.get('enrollment', 'N/A')} participants</p>
+                <p><strong>Locations:</strong> {trial.get('locations', 'N/A')}</p>
+                <p><strong>Primary Outcome:</strong> {trial.get('primary_outcome', 'N/A')}</p>
+                <p><strong>Estimated Completion:</strong> {trial.get('estimated_completion', 'N/A')}</p>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+    
+    # Clinical trial statistics
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("🔬 Active Trials", len([t for t in trials_data if 'recruiting' in t.get('status', '').lower()]))
+    
+    with col2:
+        total_enrollment = sum([t.get('enrollment', 0) for t in trials_data])
+        st.metric("👥 Total Enrollment", f"{total_enrollment:,}")
+    
+    with col3:
+        phase_3_trials = len([t for t in trials_data if 'phase 3' in t.get('phase', '').lower()])
+        st.metric("🎯 Phase 3 Trials", phase_3_trials)
 
-def create_fda_analytics_charts():
-    """Create FDA analytics charts"""
+def show_market_impact(events):
+    """Show market impact analysis"""
+    
+    st.markdown("#### 📈 Market Impact Analysis")
+    
+    # High-impact upcoming events
+    high_impact_events = [e for e in events if e.get('market_impact') == 'Major' and e.get('days_until', 0) > 0]
+    
+    if high_impact_events:
+        st.markdown("##### 🚨 High-Impact Upcoming Events")
+        
+        for event in sorted(high_impact_events, key=lambda x: x.get('days_until', 999))[:5]:
+            market_cap_b = event.get('market_cap', 0) / 1e9 if event.get('market_cap') else 0
+            
+            st.markdown(f"""
+            **{event.get('company', 'N/A')} - {event.get('drug_name', 'N/A')}**  
+            📅 {event.get('date_formatted', 'N/A')} ({event.get('days_until', 0)} days)  
+            💰 Market Cap: ${market_cap_b:.0f}B | ⚠️ Risk: {event.get('risk_level', 'N/A')}  
+            🏥 {event.get('indication', 'N/A')} | {event.get('catalyst_type', 'FDA Event')}
+            """)
+    
+    # Market insights
+    st.markdown("##### 💡 Key Market Insights")
+    
+    insights = [
+        "**Alzheimer's Disease Focus**: Multiple major PDUFA dates for Alzheimer's treatments represent significant market opportunities and risks.",
+        
+        "**Rare Disease Premiums**: FDA approvals in rare diseases typically drive higher stock price movements due to favorable regulatory pathways.",
+        
+        "**Advisory Committee Impact**: FDA advisory committee meetings can create significant volatility even before final approval decisions.",
+        
+        "**Biotech Volatility**: Smaller biotech companies face higher percentage price movements on FDA decisions due to pipeline concentration.",
+        
+        "**Patent Cliff Considerations**: FDA approvals help companies offset revenue losses from patent expirations."
+    ]
+    
+    for insight in insights:
+        st.markdown(f"• {insight}")
+    
+    # FDA approval success rates
+    st.markdown("##### 📊 FDA Approval Context")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Monthly approvals trend
-        months = ['Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025']
-        approvals = [18, 15, 22, 19, 16, 18]
+        st.info("""
+        **FDA Approval Success Rates:**
         
-        fig_monthly = px.line(
-            x=months,
-            y=approvals,
-            title="Monthly FDA Approvals (2025)",
-            markers=True
-        )
-        fig_monthly.update_layout(showlegend=False)
-        st.plotly_chart(fig_monthly, use_container_width=True)
+        🔹 **Phase 3 to Approval**: ~58% overall  
+        🔹 **Oncology**: ~48% success rate  
+        🔹 **Rare Diseases**: ~72% success rate  
+        🔹 **CNS/Neurology**: ~42% success rate  
+        🔹 **Breakthrough Therapy**: ~85% success rate
+        """)
     
     with col2:
-        # Therapeutic area distribution
-        areas = ['Oncology', 'CNS', 'Cardiovascular', 'Infectious Disease', 'Rare Disease', 'Other']
-        counts = [39, 18, 12, 23, 15, 20]
+        st.info("""
+        **Average Timeline:**
         
-        fig_areas = px.pie(
-            values=counts,
-            names=areas,
-            title="Approvals by Therapeutic Area (2025 YTD)"
-        )
-        st.plotly_chart(fig_areas, use_container_width=True)
-    
-    # PDUFA performance metrics
-    st.markdown("#### 🎯 PDUFA Performance Metrics")
-    
-    col3, col4, col5 = st.columns(3)
-    
-    with col3:
-        st.metric("On-Time Reviews", "89%", "+2%")
-    
-    with col4:
-        st.metric("First-Cycle Approvals", "73%", "+5%")
-    
-    with col5:
-        st.metric("Average Review Time", "10.2 months", "-0.8")
-
-def get_event_class(event_type):
-    """Get CSS class for event type"""
-    event_classes = {
-        'PDUFA Date': 'pdufa-date',
-        'Advisory Committee': 'advisory-committee',
-        'Approval': 'approval',
-        'Clinical Hold': 'clinical-hold',
-        'Breakthrough Designation': 'breakthrough'
-    }
-    return event_classes.get(event_type, '')
+        🔹 **Standard Review**: 10-12 months  
+        🔹 **Priority Review**: 6-8 months  
+        🔹 **Fast Track**: 6 months  
+        🔹 **Breakthrough Therapy**: 6 months  
+        🔹 **Accelerated Approval**: 6-8 months
+        """)
 
 if __name__ == "__main__":
     main()

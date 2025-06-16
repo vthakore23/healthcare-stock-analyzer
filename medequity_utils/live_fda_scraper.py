@@ -35,59 +35,148 @@ class LiveFDAScaper:
         # PDUFA dates and key events (these would be scraped from FDA Orange Book/databases)
         self.upcoming_pdufa_dates = [
             {
-                'drug': 'Donanemab',
+                'drug': 'Donanemab (LY3002813)',
                 'company': 'Eli Lilly',
                 'indication': "Alzheimer's Disease",
-                'pdufa_date': '2025-06-20',
+                'pdufa_date': '2025-01-06',
                 'market_cap': 842000000000,  # $842B
                 'phase': 'PDUFA Date',
                 'catalyst_type': 'FDA Approval Decision',
                 'risk_level': 'High',
-                'market_impact': 'Major'
+                'market_impact': 'Major',
+                'ticker': 'LLY'
             },
             {
-                'drug': 'VX-264',
-                'company': 'Vertex Pharmaceuticals',
-                'indication': 'Rare Kidney Disease',
-                'pdufa_date': '2025-06-25',
-                'market_cap': 118000000000,  # $118B
-                'phase': 'Advisory Committee',
-                'catalyst_type': 'FDA Advisory Committee Meeting',
-                'risk_level': 'Medium',
-                'market_impact': 'Moderate'
+                'drug': 'Aducanumab Re-submission',
+                'company': 'Biogen',
+                'indication': "Alzheimer's Disease",
+                'pdufa_date': '2025-02-15',
+                'market_cap': 21000000000,  # $21B
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'High',
+                'market_impact': 'Major',
+                'ticker': 'BIIB'
             },
             {
-                'drug': 'mRNA-1345',
-                'company': 'Moderna',
-                'indication': 'RSV Vaccine',
-                'pdufa_date': '2025-06-28',
-                'market_cap': 42000000000,  # $42B
+                'drug': 'KarXT (xanomeline-trospium)',
+                'company': 'Bristol Myers Squibb',
+                'indication': 'Schizophrenia',
+                'pdufa_date': '2025-03-28',
+                'market_cap': 110000000000,  # $110B
                 'phase': 'PDUFA Date',
                 'catalyst_type': 'FDA Approval Decision',
                 'risk_level': 'Medium',
-                'market_impact': 'Moderate'
+                'market_impact': 'Major',
+                'ticker': 'BMY'
+            },
+            {
+                'drug': 'Zilebesiran',
+                'company': 'Alnylam Pharmaceuticals',
+                'indication': 'Hypertension',
+                'pdufa_date': '2025-04-15',
+                'market_cap': 24000000000,  # $24B
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'Medium',
+                'market_impact': 'Moderate',
+                'ticker': 'ALNY'
+            },
+            {
+                'drug': 'Nemolizumab',
+                'company': 'Galderma/Maruho',
+                'indication': 'Atopic Dermatitis',
+                'pdufa_date': '2025-05-31',
+                'market_cap': 15000000000,  # $15B estimated
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'Low',
+                'market_impact': 'Moderate',
+                'ticker': 'GALDA'
             },
             {
                 'drug': 'Lenacapavir',
                 'company': 'Gilead Sciences',
                 'indication': 'HIV PrEP',
-                'pdufa_date': '2025-07-03',
+                'pdufa_date': '2025-06-27',
                 'market_cap': 104000000000,  # $104B
                 'phase': 'PDUFA Date',
                 'catalyst_type': 'FDA Approval Decision',
                 'risk_level': 'Low',
-                'market_impact': 'Moderate'
+                'market_impact': 'Moderate',
+                'ticker': 'GILD'
             },
             {
-                'drug': 'Rucaparib',
-                'company': 'Clovis Oncology',
-                'indication': 'Prostate Cancer',
-                'pdufa_date': '2025-07-15',
-                'market_cap': 890000000,  # $890M
+                'drug': 'Vadadustat',
+                'company': 'Akebia Therapeutics',
+                'indication': 'Anemia in CKD',
+                'pdufa_date': '2025-07-24',
+                'market_cap': 850000000,  # $850M
                 'phase': 'PDUFA Date',
                 'catalyst_type': 'FDA Approval Decision',
                 'risk_level': 'High',
-                'market_impact': 'Major'
+                'market_impact': 'Major',
+                'ticker': 'AKBA'
+            },
+            {
+                'drug': 'Ritlecitinib',
+                'company': 'Pfizer',
+                'indication': 'Alopecia Areata',
+                'pdufa_date': '2025-08-15',
+                'market_cap': 170000000000,  # $170B
+                'phase': 'Advisory Committee',
+                'catalyst_type': 'FDA Advisory Committee',
+                'risk_level': 'Low',
+                'market_impact': 'Moderate',
+                'ticker': 'PFE'
+            },
+            {
+                'drug': 'Epcoritamab',
+                'company': 'AbbVie/Genmab',
+                'indication': 'B-cell Lymphoma',
+                'pdufa_date': '2025-09-30',
+                'market_cap': 310000000000,  # $310B (ABBV)
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'Medium',
+                'market_impact': 'Moderate',
+                'ticker': 'ABBV'
+            },
+            {
+                'drug': 'Linzagolix',
+                'company': 'ObsEva',
+                'indication': 'Uterine Fibroids',
+                'pdufa_date': '2025-10-28',
+                'market_cap': 45000000,  # $45M
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'High',
+                'market_impact': 'Major',
+                'ticker': 'OBSV'
+            },
+            {
+                'drug': 'CTX001 (exagamglogene autotemcel)',
+                'company': 'Vertex Pharmaceuticals/CRISPR',
+                'indication': 'Sickle Cell Disease',
+                'pdufa_date': '2025-12-08',
+                'market_cap': 118000000000,  # $118B (VRTX)
+                'phase': 'PDUFA Date',  
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'Medium',
+                'market_impact': 'Major',
+                'ticker': 'VRTX'
+            },
+            {
+                'drug': 'Olezarsen',
+                'company': 'Ionis Pharmaceuticals',
+                'indication': 'Hypertriglyceridemia',
+                'pdufa_date': '2026-01-15',
+                'market_cap': 3500000000,  # $3.5B
+                'phase': 'PDUFA Date',
+                'catalyst_type': 'FDA Approval Decision',
+                'risk_level': 'Medium',
+                'market_impact': 'Moderate',
+                'ticker': 'IONS'
             }
         ]
     

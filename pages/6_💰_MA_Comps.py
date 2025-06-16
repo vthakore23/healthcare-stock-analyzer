@@ -1,443 +1,549 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+import plotly.express as px
+from plotly.subplots import make_subplots
 import numpy as np
+from datetime import datetime, timedelta
+import sys
+import os
+
+# Add the medequity_utils directory to the path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'medequity_utils'))
+
+try:
+    from live_ma_scraper import LiveMADealscraper
+except ImportError:
+    st.error("Could not import M&A scraper. Please check the installation.")
+    st.stop()
 
 # Page configuration
 st.set_page_config(
-    page_title="M&A Comparisons - Healthcare Analyzer",
+    page_title="M&A Comparables Analysis",
     page_icon="💰",
     layout="wide"
 )
 
-# Enhanced CSS
+# Custom CSS
 st.markdown("""
 <style>
-    .ma-header {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .deal-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 0.5rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 4px solid #1f77b4;
-    }
-    
-    .deal-completed { border-left-color: #28a745; }
-    .deal-pending { border-left-color: #ffc107; }
-    .deal-failed { border-left-color: #dc3545; }
-    
-    .premium-positive { color: #28a745; font-weight: bold; }
-    .premium-negative { color: #dc3545; font-weight: bold; }
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    margin: 0.5rem 0;
+}
+
+.deal-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #667eea;
+    margin: 1rem 0;
+}
+
+.deal-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.deal-premium {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 0.2rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.negative-premium {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.status-completed {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-pending {
+    background: #fff3e0;
+    color: #ef6c00;
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.therapeutic-area {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.source-link {
+    color: #1976d2;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.source-link:hover {
+    text-decoration: underline;
+}
 </style>
 """, unsafe_allow_html=True)
 
 def main():
-    st.markdown("""
-    <div class="ma-header">
-        <h1>💰 M&A Comparisons & Analysis</h1>
-        <p style="font-size: 1.2rem;">Analyze healthcare mergers, acquisitions, and valuations</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.title("💰 M&A Comparables Analysis")
+    st.markdown("### Real-Time Healthcare M&A Deals & Valuation Analysis")
     
-    # Create tabs
-    tab1, tab2, tab3 = st.tabs(["🔍 Deal Analysis", "📊 Market Trends", "💡 Valuation Tools"])
+    # Initialize the live M&A scraper
+    if 'ma_scraper' not in st.session_state:
+        st.session_state.ma_scraper = LiveMADealscraper()
     
-    with tab1:
-        show_deal_analysis()
+    # Sidebar filters
+    st.sidebar.header("🔍 Filter M&A Deals")
     
-    with tab2:
-        show_market_trends()
+    with st.spinner("🔄 Loading live M&A data..."):
+        all_deals = st.session_state.ma_scraper.get_live_ma_deals()
     
-    with tab3:
-        show_valuation_tools()
-
-def show_deal_analysis():
-    """Show M&A deal analysis and comparisons"""
-    st.markdown("### 🔍 Recent Healthcare M&A Deals")
+    if not all_deals:
+        st.error("Could not load M&A deals data. Please try again later.")
+        return
     
     # Filter options
-    col1, col2, col3 = st.columns(3)
+    deal_size_min = st.sidebar.slider(
+        "Minimum Deal Size ($B)", 
+        0.0, 50.0, 0.0, 0.5,
+        help="Filter deals by minimum transaction value"
+    )
     
-    with col1:
-        deal_status = st.selectbox("Deal Status:", ["All", "Completed", "Pending", "Failed"])
+    therapeutic_areas = list(set([deal.get('therapeutic_area', 'Other') for deal in all_deals]))
+    selected_areas = st.sidebar.multiselect(
+        "Therapeutic Areas", 
+        therapeutic_areas, 
+        default=therapeutic_areas,
+        help="Filter by therapeutic focus area"
+    )
     
-    with col2:
-        subsector = st.selectbox("Subsector:", 
-                                ["All", "Biotechnology", "Pharmaceuticals", "Medical Devices", "Digital Health"])
+    deal_status = st.sidebar.multiselect(
+        "Deal Status",
+        ['Completed', 'Pending'],
+        default=['Completed', 'Pending']
+    )
     
-    with col3:
-        deal_size = st.selectbox("Deal Size:", 
-                                ["All", ">$10B", "$1B-$10B", "$100M-$1B", "<$100M"])
+    show_recent_only = st.sidebar.checkbox(
+        "Show Recent Deals Only (Last 12 Months)",
+        value=False
+    )
     
-    # Generate sample deals
-    deals = generate_sample_deals()
+    # Apply filters
+    filtered_deals = []
+    for deal in all_deals:
+        # Size filter
+        if deal.get('deal_value', 0) < deal_size_min:
+            continue
+        
+        # Therapeutic area filter
+        if deal.get('therapeutic_area', 'Other') not in selected_areas:
+            continue
+        
+        # Status filter
+        if deal.get('status', 'Completed') not in deal_status:
+            continue
+        
+        # Recent deals filter
+        if show_recent_only and not deal.get('is_recent', False):
+            continue
+        
+        filtered_deals.append(deal)
     
-    # Display deals
-    display_deals_list(deals, deal_status, subsector, deal_size)
+    # Main content tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Live Deals Dashboard", "📈 Deal Analytics", "🔍 Comparable Analysis", "💡 Market Insights"])
     
-    # Deal analysis charts
-    create_deal_analysis_charts(deals)
+    with tab1:
+        show_deals_dashboard(filtered_deals)
+    
+    with tab2:
+        show_deal_analytics(filtered_deals)
+    
+    with tab3:
+        show_comparable_analysis(filtered_deals)
+    
+    with tab4:
+        show_market_insights(all_deals)
 
-def show_market_trends():
-    """Show M&A market trends and statistics"""
-    st.markdown("### 📊 Healthcare M&A Market Trends")
+def show_deals_dashboard(deals):
+    """Show live deals dashboard"""
     
-    # Market overview metrics
+    if not deals:
+        st.info("No deals match your current filters. Try adjusting the criteria.")
+        return
+    
+    # Key metrics
+    total_value = sum([d.get('deal_value', 0) for d in deals])
+    avg_premium = np.mean([float(d.get('premium', '0').replace('%', '')) for d in deals if d.get('premium', 'N/A') != 'N/A'])
+    completed_deals = len([d for d in deals if d.get('status') == 'Completed'])
+    pending_deals = len([d for d in deals if d.get('status') == 'Pending'])
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("📈 Total Deals YTD", "156")
-        st.metric("💰 Total Value YTD", "$89.2B")
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3>${total_value:.1f}B</h3>
+            <p>Total Deal Volume</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.metric("📊 Avg Deal Size", "$572M")
-        st.metric("📈 Median Premium", "42.5%")
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3>{avg_premium:.0f}%</h3>
+            <p>Average Premium</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        st.metric("🧬 Biotech Deals", "67")
-        st.metric("💊 Pharma Deals", "43")
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3>{completed_deals}</h3>
+            <p>Completed Deals</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        st.metric("🏥 Med Device Deals", "28")
-        st.metric("💻 Digital Health", "18")
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3>{pending_deals}</h3>
+            <p>Pending Deals</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Trend charts
-    create_market_trend_charts()
-
-def show_valuation_tools():
-    """Show valuation tools and calculators"""
-    st.markdown("### 💡 Valuation Tools & Calculators")
+    st.markdown("---")
     
-    # Valuation calculator
-    col1, col2 = st.columns(2)
+    # Recent deals list
+    st.markdown("#### 🔥 Recent M&A Deals")
     
-    with col1:
-        st.markdown("#### 📊 Deal Valuation Calculator")
+    for deal in sorted(deals, key=lambda x: x.get('announcement_date', '2020-01-01'), reverse=True)[:10]:
         
-        # Input parameters
-        target_revenue = st.number_input("Target Revenue ($M):", min_value=0.0, value=500.0, step=10.0)
-        revenue_multiple = st.slider("Revenue Multiple:", 1.0, 20.0, 8.0, 0.5)
-        premium = st.slider("Acquisition Premium (%):", 0, 100, 35)
+        # Calculate colors and status
+        status_class = "status-completed" if deal.get('status') == 'Completed' else "status-pending"
         
-        # Calculate valuation
-        base_valuation = target_revenue * revenue_multiple
-        premium_valuation = base_valuation * (1 + premium/100)
+        premium_value = deal.get('premium', 'N/A')
+        premium_class = "deal-premium"
+        if premium_value != 'N/A':
+            try:
+                premium_num = float(premium_value.replace('%', ''))
+                if premium_num < 0:
+                    premium_class += " negative-premium"
+            except:
+                pass
+        
+        # Market reaction info
+        market_reaction = deal.get('market_reaction', {})
+        reaction_text = ""
+        if market_reaction.get('reaction_percent'):
+            reaction_color = "green" if market_reaction['reaction_percent'] > 0 else "red"
+            reaction_text = f"<span style='color: {reaction_color}'>Market: {market_reaction['reaction_percent']:+.1f}%</span>"
         
         st.markdown(f"""
-        **Base Valuation:** ${base_valuation:,.0f}M  
-        **With Premium:** ${premium_valuation:,.0f}M  
-        **Premium Amount:** ${premium_valuation - base_valuation:,.0f}M
-        """)
-    
-    with col2:
-        st.markdown("#### 📈 Comparable Company Analysis")
-        
-        # Comparable companies table
-        comp_data = [
-            {"Company": "Vertex", "Revenue": 8900, "Market Cap": 85000, "EV/Revenue": 9.6},
-            {"Company": "Regeneron", "Revenue": 11900, "Market Cap": 72000, "EV/Revenue": 6.0},
-            {"Company": "Moderna", "Revenue": 5200, "Market Cap": 45000, "EV/Revenue": 8.7},
-            {"Company": "BioNTech", "Revenue": 17300, "Market Cap": 38000, "EV/Revenue": 2.2},
-        ]
-        
-        df_comp = pd.DataFrame(comp_data)
-        st.dataframe(df_comp, use_container_width=True)
-        
-        avg_multiple = df_comp['EV/Revenue'].mean()
-        st.markdown(f"**Average EV/Revenue:** {avg_multiple:.1f}x")
-
-def generate_sample_deals():
-    """Generate sample M&A deals updated for June 2025"""
-    deals = [
-        {
-            "date": "2025-06-10",
-            "acquirer": "Eli Lilly",
-            "target": "Morphic Therapeutics",
-            "deal_value": 18500,
-            "subsector": "Biotechnology",
-            "status": "Pending",
-            "premium": 89.2,
-            "ev_revenue": 25.4,
-            "indication": "Autoimmune",
-            "news_links": [
-                {
-                    "title": "Lilly Agrees to Acquire Morphic Therapeutics for $18.5B",
-                    "url": "https://www.biopharmadive.com/news/lilly-morphic-acquisition-2025",
-                    "source": "BioPharma Dive"
-                },
-                {
-                    "title": "Morphic's autoimmune platform attracts Lilly's $18.5B bid",
-                    "url": "https://www.fiercepharma.com/ma/lilly-morphic-deal-2025",
-                    "source": "FiercePharma"
-                }
-            ]
-        },
-        {
-            "date": "2025-05-28",
-            "acquirer": "Amgen",
-            "target": "Argenx",
-            "deal_value": 52000,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 45.7,
-            "ev_revenue": 18.9,
-            "indication": "Rare Disease",
-            "news_links": [
-                {
-                    "title": "Amgen Completes $52B Acquisition of Argenx",
-                    "url": "https://www.reuters.com/business/healthcare-pharmaceuticals/amgen-argenx-deal-completed-2025",
-                    "source": "Reuters"
-                },
-                {
-                    "title": "Argenx rare disease expertise bolsters Amgen's pipeline",
-                    "url": "https://www.statnews.com/2025/05/28/amgen-argenx-acquisition-analysis",
-                    "source": "STAT News"
-                }
-            ]
-        },
-        {
-            "date": "2025-05-15",
-            "acquirer": "Roche",
-            "target": "Monte Rosa Therapeutics",
-            "deal_value": 8900,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 112.3,
-            "ev_revenue": None,
-            "indication": "Oncology"
-        },
-        {
-            "date": "2025-04-22",
-            "acquirer": "GSK",
-            "target": "Zai Lab",
-            "deal_value": 14200,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 67.8,
-            "ev_revenue": 15.6,
-            "indication": "Oncology"
-        },
-        {
-            "date": "2025-03-18",
-            "acquirer": "Moderna",
-            "target": "Carisma Therapeutics",
-            "deal_value": 6700,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 156.4,
-            "ev_revenue": None,
-            "indication": "CAR-T Therapy"
-        },
-        {
-            "date": "2025-02-25",
-            "acquirer": "Danaher",
-            "target": "Bruker Corporation",
-            "deal_value": 21000,
-            "subsector": "Diagnostics",
-            "status": "Completed",
-            "premium": 38.9,
-            "ev_revenue": 8.7,
-            "indication": "Diagnostics"
-        },
-        {
-            "date": "2025-01-30",
-            "acquirer": "Vertex",
-            "target": "ViaCyte",
-            "deal_value": 3200,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 78.5,
-            "ev_revenue": None,
-            "indication": "Diabetes"
-        },
-        {
-            "date": "2024-12-15",
-            "acquirer": "Sanofi",
-            "target": "Provention Bio",
-            "deal_value": 2900,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 134.7,
-            "ev_revenue": None,
-            "indication": "Autoimmune"
-        },
-        {
-            "date": "2024-11-20",
-            "acquirer": "Illumina",
-            "target": "Pacific Biosciences",
-            "deal_value": 7100,
-            "subsector": "Diagnostics",
-            "status": "Completed",
-            "premium": 71.2,
-            "ev_revenue": 14.8,
-            "indication": "Genomics"
-        },
-        {
-            "date": "2024-10-08",
-            "acquirer": "Regeneron",
-            "target": "Checkmate Pharmaceuticals",
-            "deal_value": 1800,
-            "subsector": "Biotechnology",
-            "status": "Completed",
-            "premium": 92.4,
-            "ev_revenue": None,
-            "indication": "Oncology"
-        }
-    ]
-    
-    return deals
-
-def display_deals_list(deals, status_filter, subsector_filter, size_filter):
-    """Display filtered list of M&A deals"""
-    
-    # Apply filters
-    filtered_deals = deals.copy()
-    
-    if status_filter != "All":
-        filtered_deals = [d for d in filtered_deals if d['status'] == status_filter]
-    
-    if subsector_filter != "All":
-        filtered_deals = [d for d in filtered_deals if d['subsector'] == subsector_filter]
-    
-    # Deal size filter
-    if size_filter != "All":
-        if size_filter == ">$10B":
-            filtered_deals = [d for d in filtered_deals if d['deal_value'] > 10000]
-        elif size_filter == "$1B-$10B":
-            filtered_deals = [d for d in filtered_deals if 1000 <= d['deal_value'] <= 10000]
-        elif size_filter == "$100M-$1B":
-            filtered_deals = [d for d in filtered_deals if 100 <= d['deal_value'] < 1000]
-        elif size_filter == "<$100M":
-            filtered_deals = [d for d in filtered_deals if d['deal_value'] < 100]
-    
-    st.markdown(f"### 📋 M&A Deals ({len(filtered_deals)} found)")
-    
-    # Display deals
-    for deal in sorted(filtered_deals, key=lambda x: x['date'], reverse=True):
-        deal_class = f"deal-{deal['status'].lower()}"
-        premium_class = "premium-positive" if deal['premium'] > 50 else "premium-negative"
-        
-        st.markdown(f"""
-        <div class="deal-card {deal_class}">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h4>{deal['acquirer']} acquires {deal['target']}</h4>
-                    <p><strong>Deal Value:</strong> ${deal['deal_value']:,}M</p>
-                    <p><strong>Subsector:</strong> {deal['subsector']} | <strong>Indication:</strong> {deal['indication']}</p>
-                    <p><strong>Date:</strong> {deal['date']}</p>
+        <div class="deal-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <h4>{deal.get('acquirer', 'N/A')} acquiring {deal.get('target', 'N/A')}</h4>
+                    <div style="margin: 0.5rem 0;">
+                        <span class="{status_class}">{deal.get('status', 'Unknown')}</span>
+                        <span class="therapeutic-area" style="margin-left: 0.5rem;">{deal.get('therapeutic_area', 'N/A')}</span>
+                        {f'<span class="{premium_class}" style="margin-left: 0.5rem;">Premium: {premium_value}</span>' if premium_value != 'N/A' else ''}
+                    </div>
+                    <p style="margin: 0.5rem 0; color: #666;">{deal.get('deal_rationale', 'Strategic acquisition')}</p>
+                    <div style="font-size: 0.9rem; color: #888;">
+                        <strong>Announced:</strong> {datetime.strptime(deal.get('announcement_date', '2024-01-01'), '%Y-%m-%d').strftime('%B %d, %Y')} 
+                        ({deal.get('days_since_announcement', 0)} days ago)
+                        {f' | {reaction_text}' if reaction_text else ''}
+                    </div>
                 </div>
                 <div style="text-align: right;">
-                    <p><strong>Status:</strong> <span style="color: {'#28a745' if deal['status'] == 'Completed' else '#ffc107' if deal['status'] == 'Pending' else '#dc3545'};">{deal['status']}</span></p>
-                    <p><strong>Premium:</strong> <span class="{premium_class}">{deal['premium']:+.1f}%</span></p>
-                    {f"<p><strong>EV/Revenue:</strong> {deal['ev_revenue']:.1f}x</p>" if deal['ev_revenue'] else ""}
+                    <div class="deal-value">{deal.get('deal_value_formatted', 'N/A')}</div>
+                    <div style="margin-top: 0.5rem;">
+                        <a href="{deal.get('source_url', '#')}" target="_blank" class="source-link">
+                            📰 View Press Release
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Search functionality
+    st.markdown("---")
+    st.markdown("#### 🔍 Search Deals")
+    
+    search_term = st.text_input("Search by company name, drug, or therapeutic area:")
+    
+    if search_term:
+        search_results = st.session_state.ma_scraper.search_deals(search_term)
+        
+        if search_results:
+            st.markdown(f"Found {len(search_results)} deals matching '{search_term}':")
+            
+            for deal in search_results[:5]:
+                st.markdown(f"""
+                **{deal.get('acquirer')} → {deal.get('target')}** ({deal.get('deal_value_formatted', 'N/A')})  
+                *{deal.get('therapeutic_area', 'N/A')} | {deal.get('status', 'Unknown')}*  
+                [View Details]({deal.get('source_url', '#')})
+                """)
+        else:
+            st.info(f"No deals found matching '{search_term}'")
 
-def create_deal_analysis_charts(deals):
-    """Create deal analysis visualizations"""
-    st.markdown("### 📊 Deal Analysis")
+def show_deal_analytics(deals):
+    """Show deal analytics and visualizations"""
     
-    df = pd.DataFrame(deals)
+    if not deals:
+        st.info("No deals to analyze with current filters.")
+        return
     
+    # Deal size distribution
+    st.markdown("#### 📊 Deal Size Distribution")
+    
+    deal_values = [d.get('deal_value', 0) for d in deals if d.get('deal_value', 0) > 0]
+    
+    if deal_values:
+        fig = px.histogram(
+            x=deal_values,
+            nbins=10,
+            title="Distribution of Deal Sizes",
+            labels={'x': 'Deal Value ($B)', 'y': 'Number of Deals'}
+        )
+        fig.update_traces(marker_color='#667eea')
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Premium analysis
     col1, col2 = st.columns(2)
     
     with col1:
-        # Deal value by subsector
-        fig_subsector = px.bar(
-            df.groupby('subsector')['deal_value'].sum().reset_index(),
-            x='subsector',
-            y='deal_value',
-            title="Total Deal Value by Subsector ($M)"
-        )
-        st.plotly_chart(fig_subsector, use_container_width=True)
+        st.markdown("#### 💰 Premium Analysis")
+        
+        premiums = []
+        premium_labels = []
+        
+        for deal in deals:
+            if deal.get('premium', 'N/A') != 'N/A':
+                try:
+                    premium_val = float(deal.get('premium', '0').replace('%', ''))
+                    premiums.append(premium_val)
+                    premium_labels.append(f"{deal.get('acquirer', '')} → {deal.get('target', '')}")
+                except:
+                    continue
+        
+        if premiums:
+            fig = go.Figure(data=go.Bar(
+                x=premium_labels,
+                y=premiums,
+                marker_color=['#00C851' if p > 0 else '#ff4444' for p in premiums]
+            ))
+            
+            fig.update_layout(
+                title="Acquisition Premiums",
+                xaxis_title="Deal",
+                yaxis_title="Premium (%)",
+                xaxis={'tickangle': 45}
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        # Premium analysis
-        fig_premium = px.box(
-            df,
-            x='subsector',
-            y='premium',
-            title="Acquisition Premiums by Subsector"
+        st.markdown("#### 🏥 Therapeutic Areas")
+        
+        # Count by therapeutic area
+        area_counts = {}
+        for deal in deals:
+            area = deal.get('therapeutic_area', 'Other')
+            area_counts[area] = area_counts.get(area, 0) + 1
+        
+        if area_counts:
+            fig = px.pie(
+                values=list(area_counts.values()),
+                names=list(area_counts.keys()),
+                title="Deals by Therapeutic Area"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Timeline analysis
+    st.markdown("#### 📅 Deal Timeline")
+    
+    # Group deals by month
+    monthly_data = {}
+    monthly_value = {}
+    
+    for deal in deals:
+        try:
+            deal_date = datetime.strptime(deal.get('announcement_date', '2024-01-01'), '%Y-%m-%d')
+            month_key = deal_date.strftime('%Y-%m')
+            
+            monthly_data[month_key] = monthly_data.get(month_key, 0) + 1
+            monthly_value[month_key] = monthly_value.get(month_key, 0) + deal.get('deal_value', 0)
+        except:
+            continue
+    
+    if monthly_data:
+        months = sorted(monthly_data.keys())
+        counts = [monthly_data[m] for m in months]
+        values = [monthly_value[m] for m in months]
+        
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        fig.add_trace(
+            go.Bar(x=months, y=counts, name="Deal Count", marker_color='#667eea'),
+            secondary_y=False,
         )
-        st.plotly_chart(fig_premium, use_container_width=True)
-    
-    # Deal timeline
-    df['date'] = pd.to_datetime(df['date'])
-    df_timeline = df.groupby('date')['deal_value'].sum().reset_index()
-    
-    fig_timeline = px.line(
-        df_timeline,
-        x='date',
-        y='deal_value',
-        title="M&A Activity Timeline",
-        markers=True
-    )
-    st.plotly_chart(fig_timeline, use_container_width=True)
+        
+        fig.add_trace(
+            go.Scatter(x=months, y=values, name="Deal Value ($B)", mode='lines+markers', marker_color='#764ba2'),
+            secondary_y=True,
+        )
+        
+        fig.update_xaxes(title_text="Month")
+        fig.update_yaxes(title_text="Number of Deals", secondary_y=False)
+        fig.update_yaxes(title_text="Deal Value ($B)", secondary_y=True)
+        
+        fig.update_layout(title_text="M&A Activity Over Time")
+        
+        st.plotly_chart(fig, use_container_width=True)
 
-def create_market_trend_charts():
-    """Create market trend visualizations"""
-    col1, col2 = st.columns(2)
+def show_comparable_analysis(deals):
+    """Show comparable deal analysis"""
+    
+    st.markdown("#### 🎯 Comparable Deals Analysis")
+    
+    # Company search
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        # Monthly deal volume
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-        deal_counts = [23, 18, 27, 31, 24, 33]
-        deal_values = [12.5, 8.9, 15.2, 18.7, 11.3, 22.6]
-        
-        fig_volume = go.Figure()
-        fig_volume.add_trace(go.Bar(x=months, y=deal_counts, name='Deal Count', yaxis='y'))
-        fig_volume.add_trace(go.Scatter(x=months, y=deal_values, name='Deal Value ($B)', yaxis='y2', mode='lines+markers'))
-        
-        fig_volume.update_layout(
-            title="Monthly M&A Activity",
-            yaxis=dict(title="Number of Deals"),
-            yaxis2=dict(title="Deal Value ($B)", overlaying='y', side='right'),
-            height=400
+        target_company = st.text_input(
+            "Enter company ticker or name to find comparable deals:",
+            placeholder="e.g., PFE, Pfizer, Bristol Myers"
         )
-        st.plotly_chart(fig_volume, use_container_width=True)
     
     with col2:
-        # Subsector distribution
-        subsectors = ['Biotechnology', 'Pharmaceuticals', 'Medical Devices', 'Digital Health', 'Other']
-        subsector_values = [45.2, 23.8, 12.4, 5.8, 2.0]
+        min_deal_size = st.number_input("Min Deal Size ($B)", value=1.0, step=0.5)
+    
+    if target_company:
+        # Find comparable deals
+        comparable_deals = []
         
-        fig_subsector = px.pie(
-            values=subsector_values,
-            names=subsectors,
-            title="Deal Value by Subsector (YTD)"
-        )
-        st.plotly_chart(fig_subsector, use_container_width=True)
+        # First, find deals involving the target company
+        direct_deals = [d for d in deals if target_company.lower() in d.get('acquirer', '').lower() or target_company.lower() in d.get('target', '').lower()]
+        
+        if direct_deals:
+            st.markdown(f"##### 🎯 Direct Deals Involving '{target_company}'")
+            
+            for deal in direct_deals:
+                st.markdown(f"""
+                **{deal.get('acquirer')} → {deal.get('target')}**  
+                💰 Value: {deal.get('deal_value_formatted', 'N/A')} | Premium: {deal.get('premium', 'N/A')} | Status: {deal.get('status', 'Unknown')}  
+                🏥 {deal.get('therapeutic_area', 'N/A')} | 📅 {deal.get('announcement_date', 'N/A')}  
+                📝 {deal.get('deal_rationale', 'Strategic acquisition')}  
+                [📰 Press Release]({deal.get('source_url', '#')})
+                """)
+        
+        # Find therapeutic area matches
+        if direct_deals:
+            therapeutic_areas = list(set([d.get('therapeutic_area', '') for d in direct_deals]))
+            
+            st.markdown(f"##### 🏥 Comparable Deals in Same Therapeutic Areas")
+            
+            for area in therapeutic_areas:
+                if area:
+                    area_deals = [d for d in deals if d.get('therapeutic_area', '') == area and d not in direct_deals]
+                    area_deals = [d for d in area_deals if d.get('deal_value', 0) >= min_deal_size]
+                    
+                    if area_deals:
+                        st.markdown(f"**{area} Deals:**")
+                        
+                        # Create comparison table
+                        comp_data = []
+                        for deal in area_deals[:5]:  # Top 5
+                            comp_data.append({
+                                'Acquirer': deal.get('acquirer', 'N/A'),
+                                'Target': deal.get('target', 'N/A'),
+                                'Value': deal.get('deal_value_formatted', 'N/A'),
+                                'Premium': deal.get('premium', 'N/A'),
+                                'Date': deal.get('announcement_date', 'N/A'),
+                                'Status': deal.get('status', 'Unknown')
+                            })
+                        
+                        if comp_data:
+                            comp_df = pd.DataFrame(comp_data)
+                            st.dataframe(comp_df, use_container_width=True)
+
+def show_market_insights(all_deals):
+    """Show market insights and trends"""
     
-    # Premium trends
-    st.markdown("#### 📈 Premium Trends")
+    st.markdown("#### 💡 M&A Market Insights")
     
-    quarters = ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024']
-    avg_premiums = [38.5, 42.1, 45.8, 41.2, 48.9, 52.3]
+    # Get deal statistics
+    stats = st.session_state.ma_scraper.get_deal_statistics()
     
-    fig_premium_trend = px.line(
-        x=quarters,
-        y=avg_premiums,
-        title="Average Acquisition Premiums Over Time",
-        markers=True
-    )
-    fig_premium_trend.update_layout(
-        yaxis_title="Average Premium (%)",
-        xaxis_title="Quarter"
-    )
-    st.plotly_chart(fig_premium_trend, use_container_width=True)
+    if stats:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### 📈 Market Statistics")
+            
+            st.metric("Total Deals Tracked", stats.get('total_deals', 0))
+            st.metric("Total Deal Value", f"${stats.get('total_value', 0):.1f}B")
+            st.metric("Average Deal Size", f"${stats.get('average_deal_size', 0):.1f}B")
+            st.metric("Average Premium", f"{stats.get('average_premium', 0):.0f}%")
+        
+        with col2:
+            st.markdown("##### 🏢 Most Active Acquirers")
+            
+            active_acquirers = stats.get('most_active_acquirers', [])
+            for acquirer, count in active_acquirers:
+                st.write(f"**{acquirer}**: {count} deal{'s' if count > 1 else ''}")
+    
+    # Key trends and insights
+    st.markdown("##### 🔍 Key Market Trends")
+    
+    insights = [
+        "**Oncology M&A Dominance**: Cancer treatments continue to drive the highest-value acquisitions, with companies seeking novel platforms like ADCs (Antibody-Drug Conjugates).",
+        
+        "**Rare Disease Premium**: Rare disease assets command premium valuations due to regulatory advantages and pricing power.",
+        
+        "**Platform Technology Focus**: Acquirers are prioritizing platform technologies (like CRISPR, cell therapy) over single-asset deals.",
+        
+        "**Regulatory Risk**: FDA approval uncertainty continues to create significant valuation spreads in biotech M&A.",
+        
+        "**Cash-Rich Buyers**: Large pharma companies are sitting on substantial cash reserves, enabling large-scale acquisitions."
+    ]
+    
+    for insight in insights:
+        st.markdown(f"• {insight}")
+    
+    # Market outlook
+    st.markdown("##### 🔮 Market Outlook")
+    
+    st.info("""
+    **2025 M&A Outlook:**
+    
+    🔹 **Continued Consolidation**: Large pharma will continue acquiring biotech to replenish pipelines  
+    🔹 **AI/Digital Health**: Growing interest in AI-powered drug discovery and digital therapeutics  
+    🔹 **Cell & Gene Therapy**: High valuations expected for breakthrough therapies  
+    🔹 **Geographic Expansion**: Increased focus on emerging markets and global expansion deals  
+    🔹 **ESG Considerations**: Environmental and social factors increasingly influencing deal structures
+    """)
 
 if __name__ == "__main__":
     main()
