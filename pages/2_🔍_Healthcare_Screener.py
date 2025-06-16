@@ -487,41 +487,148 @@ def show_top_picks():
 def run_predefined_screen(screen_type):
     """Run predefined screening strategies"""
     
-    with st.spinner(f"🔍 Running {screen_type} screen..."):
+    with st.spinner(f"🔍 Running {screen_type} screen across ALL stocks..."):
         universe = st.session_state.stock_universe
         
-        # Define screening criteria for each type
-        if screen_type == "growth":
-            symbols = universe[:50]  # Sample for demo
-        elif screen_type == "momentum":
-            symbols = universe[50:100]
-        elif screen_type == "value":
-            symbols = universe[100:150]
-        elif screen_type == "biotech":
-            symbols = ['MRNA', 'BNTX', 'REGN', 'VRTX', 'GILD', 'BIIB', 'AMGN', 'CELG']
-        elif screen_type == "pharma":
-            symbols = ['PFE', 'JNJ', 'MRK', 'ABT', 'LLY', 'BMY', 'ABBV', 'GSK']
-        elif screen_type == "medtech":
-            symbols = ['MDT', 'SYK', 'ISRG', 'DXCM', 'BSX', 'ZBH', 'HOLX', 'EW']
-        else:
-            symbols = universe[:30]
+        # Process larger chunks of the universe for better coverage
+        chunk_size = 200  # Process 200 stocks at a time
+        all_results = []
         
-        # Get real-time data
-        results = st.session_state.advanced_screener.get_real_time_data(symbols)
+        # Process universe in chunks to get comprehensive coverage
+        for i in range(0, min(len(universe), 800), chunk_size):  # Process up to 800 stocks
+            chunk = universe[i:i + chunk_size]
+            chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
+            
+            if not chunk_results.empty:
+                all_results.append(chunk_results)
+        
+        # Combine all results
+        if all_results:
+            results = pd.concat(all_results, ignore_index=True)
+        else:
+            results = pd.DataFrame()
         
         # Apply specific filters based on screen type
-        if screen_type == "growth" and not results.empty:
-            results = results[
-                (results['Revenue Growth'] > 0.15) & 
-                (results['PE Ratio'] > 15) & 
-                (results['PE Ratio'] < 50)
-            ].head(20)
-        elif screen_type == "value" and not results.empty:
-            results = results[
-                (results['PE Ratio'] > 0) & 
-                (results['PE Ratio'] < 15) & 
-                (results['Price to Book'] < 3)
-            ].head(20)
+        if not results.empty:
+            if screen_type == "growth":
+                # Growth stocks: High revenue growth, reasonable P/E, positive earnings growth
+                filtered = results[
+                    (results['Revenue Growth'] > 0.10) & 
+                    (results['PE Ratio'] > 5) & 
+                    (results['PE Ratio'] < 60) &
+                    (results['Earnings Growth'] > 0.05) &
+                    (results['Market Cap'] > 1e9)  # Over $1B market cap
+                ]
+                results = filtered.nlargest(50, 'Revenue Growth')
+                
+            elif screen_type == "momentum":
+                # Momentum stocks: Strong recent performance, good volume
+                filtered = results[
+                    (results['1M Change'] > 5) & 
+                    (results['3M Change'] > 10) &
+                    (results['Volume'] > results['Avg Volume'] * 1.2) &
+                    (results['RSI'] > 50) &
+                    (results['Market Cap'] > 500e6)  # Over $500M market cap
+                ]
+                results = filtered.nlargest(50, '1M Change')
+                
+            elif screen_type == "small_growth":
+                # Small cap growth
+                filtered = results[
+                    (results['Market Cap'] > 300e6) &
+                    (results['Market Cap'] < 10e9) &
+                    (results['Revenue Growth'] > 0.15) &
+                    (results['PE Ratio'] > 0) &
+                    (results['PE Ratio'] < 40)
+                ]
+                results = filtered.nlargest(50, 'Revenue Growth')
+                
+            elif screen_type == "value":
+                # Value stocks: Low P/E, reasonable P/B, positive earnings
+                filtered = results[
+                    (results['PE Ratio'] > 0) & 
+                    (results['PE Ratio'] < 18) & 
+                    (results['Price to Book'] > 0) &
+                    (results['Price to Book'] < 4) &
+                    (results['Profit Margin'] > 0.05) &
+                    (results['Market Cap'] > 1e9)
+                ]
+                results = filtered.nsmallest(50, 'PE Ratio')
+                
+            elif screen_type == "dividend":
+                # Dividend aristocrats: High dividend yield, consistent payments
+                filtered = results[
+                    (results['Dividend Yield'] > 0.03) &
+                    (results['PE Ratio'] > 0) &
+                    (results['PE Ratio'] < 25) &
+                    (results['Current Ratio'] > 1.2) &
+                    (results['Market Cap'] > 5e9)  # Large cap for stability
+                ]
+                results = filtered.nlargest(50, 'Dividend Yield')
+                
+            elif screen_type == "low_pe":
+                # Low P/E stocks
+                filtered = results[
+                    (results['PE Ratio'] > 0) & 
+                    (results['PE Ratio'] < 12) &
+                    (results['Profit Margin'] > 0.03) &
+                    (results['ROE'] > 0.08) &
+                    (results['Market Cap'] > 1e9)
+                ]
+                results = filtered.nsmallest(50, 'PE Ratio')
+                
+            elif screen_type == "biotech":
+                # Biotech leaders: Healthcare sector with growth characteristics
+                healthcare_results = results[results['Sector'] == 'Healthcare']
+                if healthcare_results.empty:
+                    # Fallback to known biotech symbols if sector filtering fails
+                    biotech_symbols = ['MRNA', 'BNTX', 'REGN', 'VRTX', 'GILD', 'BIIB', 'AMGN', 'ILMN', 'INCY', 'ALNY']
+                    biotech_data = st.session_state.advanced_screener.get_real_time_data(biotech_symbols)
+                    results = biotech_data.head(30)
+                else:
+                    filtered = healthcare_results[
+                        (healthcare_results['Revenue Growth'] > 0.08) &
+                        (healthcare_results['Market Cap'] > 1e9) &
+                        (healthcare_results['PE Ratio'] > 0)
+                    ]
+                    results = filtered.nlargest(30, 'Market Cap')
+                
+            elif screen_type == "pharma":
+                # Pharma giants: Large healthcare companies
+                healthcare_results = results[results['Sector'] == 'Healthcare']
+                if healthcare_results.empty:
+                    # Fallback to known pharma symbols
+                    pharma_symbols = ['PFE', 'JNJ', 'MRK', 'ABT', 'LLY', 'BMY', 'ABBV', 'AZN', 'NVO', 'ROCHE']
+                    pharma_data = st.session_state.advanced_screener.get_real_time_data(pharma_symbols)
+                    results = pharma_data.head(30)
+                else:
+                    filtered = healthcare_results[
+                        (healthcare_results['Market Cap'] > 50e9) &  # Large cap pharma
+                        (healthcare_results['Dividend Yield'] > 0.02) &
+                        (healthcare_results['PE Ratio'] > 0)
+                    ]
+                    results = filtered.nlargest(30, 'Market Cap')
+                
+            elif screen_type == "medtech":
+                # Medical technology companies
+                healthcare_results = results[results['Sector'] == 'Healthcare']
+                if healthcare_results.empty:
+                    # Fallback to known medtech symbols
+                    medtech_symbols = ['MDT', 'SYK', 'ISRG', 'DXCM', 'BSX', 'ZBH', 'HOLX', 'EW', 'ALGN', 'IDXX']
+                    medtech_data = st.session_state.advanced_screener.get_real_time_data(medtech_symbols)
+                    results = medtech_data.head(30)
+                else:
+                    filtered = healthcare_results[
+                        (healthcare_results['Market Cap'] > 5e9) &
+                        (healthcare_results['ROE'] > 0.10) &
+                        (healthcare_results['PE Ratio'] > 0)
+                    ]
+                    results = filtered.nlargest(30, 'Market Cap')
+            
+            # If no results after filtering, show top stocks by market cap
+            if results.empty:
+                st.warning(f"No stocks found matching {screen_type} criteria. Showing top stocks by market cap.")
+                results = all_results[0].nlargest(20, 'Market Cap') if all_results else pd.DataFrame()
         
         st.session_state.screen_results = results
         st.session_state.screen_type = screen_type.title()
@@ -529,17 +636,29 @@ def run_predefined_screen(screen_type):
 def run_custom_screen(filters):
     """Run custom screen with user-defined filters"""
     
-    with st.spinner("🔍 Running custom screen..."):
+    with st.spinner("🔍 Running custom screen across ALL stocks..."):
         universe = st.session_state.stock_universe
         
-        # Get real-time data for sample
-        sample_size = min(100, len(universe))
-        sample_symbols = universe[:sample_size]
+        # Process larger chunks for comprehensive screening
+        chunk_size = 200
+        all_results = []
         
-        results = st.session_state.advanced_screener.get_real_time_data(sample_symbols)
+        # Process up to 1000 stocks for custom screening
+        for i in range(0, min(len(universe), 1000), chunk_size):
+            chunk = universe[i:i + chunk_size]
+            chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
+            
+            if not chunk_results.empty:
+                all_results.append(chunk_results)
+        
+        # Combine all results
+        if all_results:
+            results = pd.concat(all_results, ignore_index=True)
+        else:
+            results = pd.DataFrame()
         
         if not results.empty:
-            # Apply filters
+            # Apply comprehensive filters
             filtered_results = results.copy()
             
             # Market cap filter
@@ -566,9 +685,85 @@ def run_custom_screen(filters):
                 (filtered_results['PE Ratio'] > 0)
             ]
             
-            # Add more filters as needed...
+            # Price to Book filter
+            if 'pb_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['Price to Book'] >= filters['pb_range'][0]) &
+                    (filtered_results['Price to Book'] <= filters['pb_range'][1]) &
+                    (filtered_results['Price to Book'] > 0)
+                ]
             
-            st.session_state.custom_screen_results = filtered_results.head(50)
+            # PEG filter
+            if 'peg_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['PEG Ratio'] >= filters['peg_range'][0]) &
+                    (filtered_results['PEG Ratio'] <= filters['peg_range'][1]) &
+                    (filtered_results['PEG Ratio'] > 0)
+                ]
+            
+            # Revenue growth filter
+            if 'rev_growth_min' in filters:
+                filtered_results = filtered_results[
+                    filtered_results['Revenue Growth'] >= filters['rev_growth_min'] / 100
+                ]
+            
+            # Earnings growth filter
+            if 'earn_growth_min' in filters:
+                filtered_results = filtered_results[
+                    filtered_results['Earnings Growth'] >= filters['earn_growth_min'] / 100
+                ]
+            
+            # ROE filter
+            if 'roe_min' in filters:
+                filtered_results = filtered_results[
+                    filtered_results['ROE'] >= filters['roe_min'] / 100
+                ]
+            
+            # Profit margin filter
+            if 'profit_margin_min' in filters:
+                filtered_results = filtered_results[
+                    filtered_results['Profit Margin'] >= filters['profit_margin_min'] / 100
+                ]
+            
+            # Volume filter
+            if 'min_volume' in filters:
+                filtered_results = filtered_results[
+                    filtered_results['Avg Volume'] >= filters['min_volume']
+                ]
+            
+            # Performance filters
+            if 'perf_1y_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['1Y Change'] >= filters['perf_1y_range'][0]) &
+                    (filtered_results['1Y Change'] <= filters['perf_1y_range'][1])
+                ]
+            
+            if 'perf_1m_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['1M Change'] >= filters['perf_1m_range'][0]) &
+                    (filtered_results['1M Change'] <= filters['perf_1m_range'][1])
+                ]
+            
+            # Technical filters
+            if 'rsi_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['RSI'] >= filters['rsi_range'][0]) &
+                    (filtered_results['RSI'] <= filters['rsi_range'][1])
+                ]
+            
+            if 'beta_range' in filters:
+                filtered_results = filtered_results[
+                    (filtered_results['Beta'] >= filters['beta_range'][0]) &
+                    (filtered_results['Beta'] <= filters['beta_range'][1]) &
+                    (filtered_results['Beta'] > 0)
+                ]
+            
+            # Sort by market cap and return top results
+            if not filtered_results.empty:
+                st.session_state.custom_screen_results = filtered_results.nlargest(100, 'Market Cap')
+            else:
+                st.warning("No stocks match your custom criteria. Try adjusting the filters.")
+                st.session_state.custom_screen_results = results.nlargest(20, 'Market Cap')
         else:
             st.session_state.custom_screen_results = pd.DataFrame()
 
