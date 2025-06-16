@@ -8,6 +8,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import io
 import base64
+import time
 
 # Page configuration
 st.set_page_config(
@@ -607,30 +608,67 @@ def main():
         show_dcf_guide()
 
 def load_company_data(ticker):
-    """Enhanced company data loading with comprehensive financial analysis"""
+    """Enhanced company data loading with comprehensive financial analysis and error handling"""
     
     if not ticker:
         st.error("Please enter a stock ticker")
-        return
+        return False
     
-    with st.spinner(f"🔍 Fetching comprehensive data for {ticker}..."):
-        scraper = FinancialDataScraper()
-        company_data = scraper.get_comprehensive_data(ticker)
+    # Check if we recently tried to load this ticker (rate limiting protection)
+    current_time = time.time()
+    last_request_key = f"last_request_{ticker}"
     
-    if company_data:
-        # Store in session state
-        st.session_state.company_data = company_data
-        st.session_state.company_ticker = ticker
+    if last_request_key in st.session_state:
+        time_since_last = current_time - st.session_state[last_request_key]
+        if time_since_last < 10:  # 10 second cooldown
+            st.warning(f"⏳ Please wait {10 - int(time_since_last)} seconds before trying again to avoid rate limits.")
+            return False
+    
+    # Store request time
+    st.session_state[last_request_key] = current_time
+    
+    try:
+        with st.spinner(f"🔍 Fetching comprehensive data for {ticker}..."):
+            scraper = FinancialDataScraper()
+            company_data = scraper.get_comprehensive_data(ticker)
         
-        # Simple success message for sidebar
-        st.success(f"✅ Loaded {company_data['company_info']['name']}")
+        if company_data and company_data.get('company_info'):
+            # Store in session state
+            st.session_state.company_data = company_data
+            st.session_state.company_ticker = ticker
+            
+            # Simple success message for sidebar
+            st.success(f"✅ Loaded {company_data['company_info']['name']}")
+            
+            # Store flag to show detailed preview in main area
+            st.session_state.show_company_preview = True
+            
+            return True
+        else:
+            st.error(f"❌ Could not load data for {ticker}. This could be due to:")
+            st.markdown("""
+            - **Rate limiting**: Too many requests. Try again in a few minutes.
+            - **Invalid ticker**: Make sure the symbol is correct (e.g., AAPL, MSFT)
+            - **Market hours**: Some data may be limited outside trading hours
+            - **Data provider issues**: Temporary service interruption
+            """)
+            
+            # Suggest manual input as fallback
+            st.info("💡 **Tip**: You can still use the DCF model with manual input if auto-loading fails.")
+            return False
+            
+    except Exception as e:
+        error_msg = str(e).lower()
         
-        # Store flag to show detailed preview in main area
-        st.session_state.show_company_preview = True
+        if "too many requests" in error_msg or "rate limit" in error_msg:
+            st.error("🚫 **Rate Limited**: Too many requests. Please wait a few minutes and try again.")
+            st.info("💡 **Tip**: Use the manual input option below to continue with your analysis.")
+        elif "connection" in error_msg or "timeout" in error_msg:
+            st.error("🌐 **Connection Error**: Network issue. Please check your internet connection and try again.")
+        else:
+            st.error(f"❌ **Error loading data**: {str(e)}")
+            st.info("💡 **Tip**: Try using the manual input option or a different ticker symbol.")
         
-        return True
-    else:
-        st.error(f"❌ Could not load data for {ticker}")
         return False
 
 def show_company_data_preview():
@@ -1209,14 +1247,26 @@ def show_export_options():
         st.markdown("#### 📈 Download Excel Model")
         
         if st.button("🔽 Generate Excel DCF Model"):
-            excel_buffer = create_excel_dcf_model(projections, valuation, assumptions)
-            
-            st.download_button(
-                label="📊 Download DCF Model.xlsx",
-                data=excel_buffer,
-                file_name=f"DCF_Model_{assumptions.get('company_name', 'Company').replace(' ', '_')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            try:
+                with st.spinner("📊 Creating Excel DCF model..."):
+                    excel_buffer = create_excel_dcf_model(projections, valuation, assumptions)
+                
+                st.download_button(
+                    label="📊 Download DCF Model.xlsx",
+                    data=excel_buffer,
+                    file_name=f"DCF_Model_{assumptions.get('company_name', 'Company').replace(' ', '_')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                
+                st.success("✅ Excel DCF model generated successfully!")
+                
+            except Exception as e:
+                st.error(f"❌ Error generating Excel file: {str(e)}")
+                st.info("💡 **Tip**: Try refreshing the page and running the DCF calculation again.")
+                
+                # Show detailed error for debugging
+                with st.expander("🔍 Error Details"):
+                    st.code(str(e))
         
         # CSV export
         st.markdown("#### 📋 Download CSV Data")
@@ -1513,17 +1563,24 @@ def create_excel_dcf_model(projections, valuation, assumptions):
         cell.alignment = center_alignment
     
     # Auto-adjust column widths
+    from openpyxl.utils import get_column_letter
+    
     for ws in [ws_summary, ws_assumptions, ws_projections]:
-        for column in ws.columns:
+        for col_num, column in enumerate(ws.columns, 1):
             max_length = 0
-            column_letter = column[0].column_letter
+            column_letter = get_column_letter(col_num)
+            
             for cell in column:
                 try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
+                    if cell.value is not None:
+                        cell_length = len(str(cell.value))
+                        if cell_length > max_length:
+                            max_length = cell_length
                 except:
                     pass
-            adjusted_width = min(max_length + 2, 20)
+            
+            # Set minimum width and maximum width
+            adjusted_width = min(max(max_length + 2, 10), 25)
             ws.column_dimensions[column_letter].width = adjusted_width
     
     # Save to BytesIO
