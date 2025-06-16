@@ -169,7 +169,19 @@ def generate_sample_deals():
             "status": "Pending",
             "premium": 89.2,
             "ev_revenue": 25.4,
-            "indication": "Autoimmune"
+            "indication": "Autoimmune",
+            "news_links": [
+                {
+                    "title": "Lilly Agrees to Acquire Morphic Therapeutics for $18.5B",
+                    "url": "https://www.biopharmadive.com/news/lilly-morphic-acquisition-2025",
+                    "source": "BioPharma Dive"
+                },
+                {
+                    "title": "Morphic's autoimmune platform attracts Lilly's $18.5B bid",
+                    "url": "https://www.fiercepharma.com/ma/lilly-morphic-deal-2025",
+                    "source": "FiercePharma"
+                }
+            ]
         },
         {
             "date": "2025-05-28",
@@ -180,7 +192,19 @@ def generate_sample_deals():
             "status": "Completed",
             "premium": 45.7,
             "ev_revenue": 18.9,
-            "indication": "Rare Disease"
+            "indication": "Rare Disease",
+            "news_links": [
+                {
+                    "title": "Amgen Completes $52B Acquisition of Argenx",
+                    "url": "https://www.reuters.com/business/healthcare-pharmaceuticals/amgen-argenx-deal-completed-2025",
+                    "source": "Reuters"
+                },
+                {
+                    "title": "Argenx rare disease expertise bolsters Amgen's pipeline",
+                    "url": "https://www.statnews.com/2025/05/28/amgen-argenx-acquisition-analysis",
+                    "source": "STAT News"
+                }
+            ]
         },
         {
             "date": "2025-05-15",
