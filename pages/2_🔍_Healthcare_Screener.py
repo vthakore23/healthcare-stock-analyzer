@@ -487,20 +487,37 @@ def show_top_picks():
 def run_predefined_screen(screen_type):
     """Run predefined screening strategies"""
     
-    with st.spinner(f"🔍 Running {screen_type} screen across ALL stocks..."):
-        universe = st.session_state.stock_universe
-        
-        # Process larger chunks of the universe for better coverage
-        chunk_size = 200  # Process 200 stocks at a time
-        all_results = []
-        
-        # Process universe in chunks to get comprehensive coverage
-        for i in range(0, min(len(universe), 800), chunk_size):  # Process up to 800 stocks
-            chunk = universe[i:i + chunk_size]
-            chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
+    try:
+        with st.spinner(f"🔍 Running {screen_type} screen across ALL stocks..."):
+            # Ensure stock universe is initialized
+            if 'stock_universe' not in st.session_state:
+                try:
+                    st.session_state.stock_universe = st.session_state.advanced_screener.get_stock_universe()
+                except Exception as e:
+                    st.error(f"Failed to load stock universe: {str(e)}")
+                    return
             
-            if not chunk_results.empty:
-                all_results.append(chunk_results)
+            universe = st.session_state.stock_universe
+            
+            if not universe or len(universe) == 0:
+                st.error("Stock universe is empty. Please try again later.")
+                return
+            
+            # Process larger chunks of the universe for better coverage
+            chunk_size = 200  # Process 200 stocks at a time
+            all_results = []
+            
+            # Process universe in chunks to get comprehensive coverage
+            for i in range(0, min(len(universe), 800), chunk_size):  # Process up to 800 stocks
+                chunk = universe[i:i + chunk_size]
+                try:
+                    chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
+                    
+                    if not chunk_results.empty:
+                        all_results.append(chunk_results)
+                except Exception as e:
+                    st.warning(f"Error processing chunk {i//chunk_size + 1}: {str(e)}")
+                    continue
         
         # Combine all results
         if all_results:
@@ -632,12 +649,30 @@ def run_predefined_screen(screen_type):
         
         st.session_state.screen_results = results
         st.session_state.screen_type = screen_type.title()
+        
+    except Exception as e:
+        st.error(f"Error running {screen_type} screen: {str(e)}")
+        st.session_state.screen_results = pd.DataFrame()
+        st.session_state.screen_type = f"{screen_type.title()} (Error)"
 
 def run_custom_screen(filters):
     """Run custom screen with user-defined filters"""
     
-    with st.spinner("🔍 Running custom screen across ALL stocks..."):
-        universe = st.session_state.stock_universe
+    try:
+        with st.spinner("🔍 Running custom screen across ALL stocks..."):
+            # Ensure stock universe is initialized
+            if 'stock_universe' not in st.session_state:
+                try:
+                    st.session_state.stock_universe = st.session_state.advanced_screener.get_stock_universe()
+                except Exception as e:
+                    st.error(f"Failed to load stock universe: {str(e)}")
+                    return
+            
+            universe = st.session_state.stock_universe
+            
+            if not universe or len(universe) == 0:
+                st.error("Stock universe is empty. Please try again later.")
+                return
         
         # Process larger chunks for comprehensive screening
         chunk_size = 200
@@ -646,10 +681,14 @@ def run_custom_screen(filters):
         # Process up to 1000 stocks for custom screening
         for i in range(0, min(len(universe), 1000), chunk_size):
             chunk = universe[i:i + chunk_size]
-            chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
-            
-            if not chunk_results.empty:
-                all_results.append(chunk_results)
+            try:
+                chunk_results = st.session_state.advanced_screener.get_real_time_data(chunk, max_workers=15)
+                
+                if not chunk_results.empty:
+                    all_results.append(chunk_results)
+            except Exception as e:
+                st.warning(f"Error processing chunk {i//chunk_size + 1}: {str(e)}")
+                continue
         
         # Combine all results
         if all_results:
@@ -766,6 +805,10 @@ def run_custom_screen(filters):
                 st.session_state.custom_screen_results = results.nlargest(20, 'Market Cap')
         else:
             st.session_state.custom_screen_results = pd.DataFrame()
+            
+    except Exception as e:
+        st.error(f"Error running custom screen: {str(e)}")
+        st.session_state.custom_screen_results = pd.DataFrame()
 
 def display_screening_results(results, screen_name):
     """Display screening results in an interactive table"""
