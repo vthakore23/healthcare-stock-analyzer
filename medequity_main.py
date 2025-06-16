@@ -33,49 +33,33 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         font-family: 'Inter', sans-serif;
     }
     
     .main-header {
-        font-size: 4rem;
-        font-weight: 700;
+        font-size: 3.5rem;
+        font-weight: 600;
         text-align: center;
-        margin-bottom: 2rem;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 4px 20px rgba(255,255,255,0.3);
-        letter-spacing: -2px;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+        letter-spacing: -1px;
     }
     
     .metric-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        padding: 2rem;
-        border-radius: 20px;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 0.8rem 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
     }
     
     .metric-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #667eea, #764ba2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #cbd5e1;
     }
     
     .positive {
@@ -118,36 +102,21 @@ st.markdown("""
     .poor-score { color: #ff4444; }
     
     .analysis-section {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(20px);
-        padding: 3rem;
-        border-radius: 24px;
-        margin: 2rem 0;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .analysis-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.5), transparent);
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
     }
     
     .sidebar-section {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(20px);
+        background: #667eea;
         color: white;
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin: 1.5rem 0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        padding: 1.2rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
     
     .quick-stat {
@@ -207,85 +176,27 @@ st.markdown("""
     }
     
     .financial-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #667eea;
         color: white;
-        padding: 2.5rem;
-        border-radius: 20px;
+        padding: 1.5rem;
+        border-radius: 8px;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        transition: all 0.2s ease;
     }
     
     .financial-card:hover {
-        transform: translateY(-8px) scale(1.03);
-        box-shadow: 0 20px 50px rgba(102, 126, 234, 0.4);
-    }
-    
-    .financial-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-        transform: rotate(45deg);
-        transition: all 0.6s;
-        opacity: 0;
-    }
-    
-    .financial-card:hover::before {
-        opacity: 1;
-        transform: rotate(45deg) translate(50%, 50%);
-    }
-    
-    .glow-button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 50px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .glow-button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
     
     .floating-panel {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 24px;
+        background: white;
+        border-radius: 12px;
         padding: 2rem;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        margin: 2rem 0;
-    }
-    
-    .neon-text {
-        color: #667eea;
-        text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        font-weight: 700;
-    }
-    
-    .pulse-animation {
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        margin: 1.5rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -442,15 +353,15 @@ def create_welcome_section():
     """Create welcome section with features"""
     st.markdown("""
     <div class="floating-panel">
-        <h2 class="neon-text" style="text-align: center; font-size: 3rem; margin-bottom: 1rem;">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem; color: #1e293b;">
             🌟 Welcome to Healthcare Stock Analyzer
         </h2>
-        <p style="text-align: center; font-size: 1.4rem; color: #666; font-weight: 300; margin-bottom: 2rem;">
+        <p style="text-align: center; font-size: 1.2rem; color: #64748b; margin-bottom: 1.5rem;">
             Your AI-powered healthcare investment intelligence platform for June 2025
         </p>
-        <div style="text-align: center; margin: 2rem 0;">
-            <div style="display: inline-block; padding: 1rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        border-radius: 50px; color: white; font-weight: 600; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+        <div style="text-align: center; margin: 1.5rem 0;">
+            <div style="display: inline-block; padding: 0.8rem 1.5rem; background: #667eea; 
+                        border-radius: 6px; color: white; font-weight: 500; font-size: 0.9rem;">
                 ✨ Latest Data • Real-time Analysis • Professional Grade
             </div>
         </div>
