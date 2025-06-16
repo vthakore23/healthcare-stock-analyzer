@@ -145,17 +145,33 @@ class StockAnalysisAI:
         
     def setup_openai(self):
         """Setup OpenAI client with API key"""
-        api_key = st.secrets.get("OPENAI_API_KEY") if hasattr(st, 'secrets') else None
+        api_key = None
         
-        if not api_key:
-            # For demo purposes, we'll use a placeholder
-            st.warning("⚠️ OpenAI API key not configured. Using demo mode.")
-            return
-        
+        # Try to get API key from multiple sources
         try:
-            self.client = openai.OpenAI(api_key=api_key)
-        except Exception as e:
-            st.error(f"Failed to initialize OpenAI client: {e}")
+            if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
+                api_key = st.secrets["OPENAI_API_KEY"]
+        except Exception:
+            pass
+        
+        # Try environment variable as fallback
+        if not api_key:
+            import os
+            api_key = os.getenv("OPENAI_API_KEY")
+        
+        # Check if key is placeholder
+        if api_key and api_key != "your-openai-api-key-here" and api_key.startswith("sk-"):
+            try:
+                self.client = openai.OpenAI(api_key=api_key)
+                st.success("✅ OpenAI API connected successfully!")
+                return
+            except Exception as e:
+                st.error(f"❌ Failed to initialize OpenAI client: {e}")
+        
+        # No valid API key found
+        st.warning("⚠️ OpenAI API key not configured. Using demo mode.")
+        st.info("💡 To enable AI features, add your OpenAI API key to `.streamlit/secrets.toml`")
+        self.client = None
     
     def get_stock_context(self, symbol):
         """Get current stock data for context"""
