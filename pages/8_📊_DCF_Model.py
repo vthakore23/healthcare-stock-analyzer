@@ -535,12 +535,9 @@ def main():
         with col2:
             if st.button("🔄 Clear", help="Clear loaded data"):
                 # Clear company data from session state
-                if 'company_data' in st.session_state:
-                    del st.session_state.company_data
-                if 'company_ticker' in st.session_state:
-                    del st.session_state.company_ticker
-                if 'dcf_assumptions' in st.session_state:
-                    del st.session_state.dcf_assumptions
+                for key in ['company_data', 'company_ticker', 'dcf_assumptions', 'dcf_projections', 'dcf_valuation']:
+                    if key in st.session_state:
+                        del st.session_state[key]
                 st.rerun()
         
         # Show loaded company status
