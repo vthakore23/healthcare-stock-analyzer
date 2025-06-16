@@ -90,7 +90,7 @@ class DCFModel:
     
     def __init__(self):
         self.projection_years = 10
-        self.terminal_growth_rate = 2.0  # More conservative terminal growth
+        self.terminal_growth_rate = 2.5  # Balanced terminal growth rate
         self.tax_rate = 21.0
         
     def calculate_dcf_valuation(self, assumptions):
@@ -287,19 +287,19 @@ class DCFModel:
         
         scenarios = {
             'Bear Case': {
-                'revenue_growth_y1': base_assumptions['revenue_growth_y1'] - 5,
-                'revenue_growth_y5': base_assumptions['revenue_growth_y5'] - 3,
-                'target_ebitda_margin': base_assumptions['target_ebitda_margin'] - 2,
-                'wacc': base_assumptions['wacc'] + 1,
-                'terminal_growth_rate': 1.5
+                'revenue_growth_y1': base_assumptions['revenue_growth_y1'] - 4,
+                'revenue_growth_y5': base_assumptions['revenue_growth_y5'] - 2,
+                'target_ebitda_margin': base_assumptions['target_ebitda_margin'] - 3,
+                'wacc': base_assumptions['wacc'] + 1.5,
+                'terminal_growth_rate': 1.8
             },
             'Base Case': base_assumptions.copy(),
             'Bull Case': {
-                'revenue_growth_y1': base_assumptions['revenue_growth_y1'] + 5,
-                'revenue_growth_y5': base_assumptions['revenue_growth_y5'] + 3,
-                'target_ebitda_margin': base_assumptions['target_ebitda_margin'] + 2,
-                'wacc': base_assumptions['wacc'] - 0.5,
-                'terminal_growth_rate': 3.0
+                'revenue_growth_y1': base_assumptions['revenue_growth_y1'] + 6,
+                'revenue_growth_y5': base_assumptions['revenue_growth_y5'] + 4,
+                'target_ebitda_margin': base_assumptions['target_ebitda_margin'] + 4,
+                'wacc': base_assumptions['wacc'] - 1.0,
+                'terminal_growth_rate': 3.2
             }
         }
         
@@ -503,7 +503,8 @@ def main():
     <div class="dcf-header">
         <h1>📊 DCF Model Builder</h1>
         <p style="font-size: 1.3rem;">Professional Discounted Cash Flow Valuation Model</p>
-        <div style="color: #e0e7ff; font-weight: 500;">Build custom DCF models with scenario & sensitivity analysis</div>
+        <div style="color: #e0e7ff; font-weight: 500;">Build custom DCF models with balanced assumptions & comprehensive analysis</div>
+        <p style="font-size: 0.9em; margin-top: 10px; color: #a5b4fc;">✨ Enhanced with more realistic default assumptions for better intrinsic value calculations</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -705,17 +706,17 @@ def show_assumptions_input():
     
     st.markdown("### 📝 DCF Assumptions")
     
-    # Initialize conservative default values
-    revenue_growth_y1 = 3
-    revenue_growth_y5 = 2
-    revenue_growth_terminal = 2.0
-    base_ebitda_margin = 15.0
-    target_ebitda_margin = 18.0
-    wacc = 12.0
+    # Initialize balanced default values
+    revenue_growth_y1 = 8
+    revenue_growth_y5 = 5
+    revenue_growth_terminal = 2.5
+    base_ebitda_margin = 20.0
+    target_ebitda_margin = 25.0
+    wacc = 10.0
     tax_rate = 21
-    capex_revenue = 5.0
-    da_revenue = 4.0
-    nwc_revenue = 2.0
+    capex_revenue = 4.0
+    da_revenue = 3.5
+    nwc_revenue = 1.5
     
     # Check if we have company data loaded
     if 'company_data' not in st.session_state:
@@ -776,11 +777,11 @@ def show_assumptions_input():
         </div>
         """, unsafe_allow_html=True)
         
-        # Update defaults with company data
-        base_ebitda_margin = company_data['financial_metrics'].get('ebitda_margin', 20.0)
-        wacc = company_data['growth_metrics'].get('estimated_wacc', 10.0)
-        historical_growth = company_data['growth_metrics'].get('revenue_cagr_3y', 10)
-        capex_revenue = company_data['financial_metrics'].get('capex_revenue_ratio', 4.0)
+        # Update defaults with company data (more optimistic)
+        base_ebitda_margin = max(company_data['financial_metrics'].get('ebitda_margin', 20.0), 15.0)
+        wacc = min(company_data['growth_metrics'].get('estimated_wacc', 10.0), 12.0)
+        historical_growth = company_data['growth_metrics'].get('revenue_cagr_3y', 8)
+        capex_revenue = company_data['financial_metrics'].get('capex_revenue_ratio', 3.5)
     
     # Forward-looking assumptions (the only inputs user needs to provide)
     st.markdown("#### 🔮 Forward-Looking Assumptions (Your Predictions)")
@@ -791,44 +792,44 @@ def show_assumptions_input():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            # Use historical growth as default suggestion, but be more conservative
-            historical_growth = st.session_state.get('company_data', {}).get('growth_metrics', {}).get('revenue_cagr_3y', 3)
-            # For negative historical growth, suggest modest recovery; for positive, be conservative
+            # Use historical growth as default suggestion, more balanced approach
+            historical_growth = st.session_state.get('company_data', {}).get('growth_metrics', {}).get('revenue_cagr_3y', 8)
+            # For negative historical growth, suggest recovery; for positive, be moderately optimistic
             if historical_growth < 0:
-                suggested_y1 = max(historical_growth * 0.5, -15)  # Modest recovery from negative growth
+                suggested_y1 = max(historical_growth * 0.3, -10)  # Recovery from negative growth
             else:
-                suggested_y1 = min(historical_growth * 0.7, 15)  # Conservative estimate of positive growth
-            suggested_y1 = max(min(suggested_y1, 15), -15)  # Cap between -15% and 15%
+                suggested_y1 = min(historical_growth * 0.9, 20)  # Moderately optimistic for positive growth
+            suggested_y1 = max(min(suggested_y1, 20), -10)  # Cap between -10% and 20%
             
             revenue_growth_y1 = st.slider(
                 "Year 1 Revenue Growth (%)", 
-                -20, 30, 
+                -15, 35, 
                 int(suggested_y1), 
-                help="Your forecast for next year's revenue growth (conservative default)"
+                help="Your forecast for next year's revenue growth (balanced approach)"
             )
         
         with col2:
-            # Year 5 should be more conservative and closer to terminal growth
+            # Year 5 should be sustainable but still growth-oriented
             if historical_growth < 0:
-                suggested_y5 = max(min(2, historical_growth * 0.3), -5)  # Conservative recovery
+                suggested_y5 = max(min(4, historical_growth * 0.2), -3)  # Moderate recovery
             else:
-                suggested_y5 = min(historical_growth * 0.4, 8)  # Much more conservative
-            suggested_y5 = max(min(suggested_y5, 8), -5)  # Cap between -5% and 8%
+                suggested_y5 = min(historical_growth * 0.6, 12)  # Balanced long-term growth
+            suggested_y5 = max(min(suggested_y5, 12), -3)  # Cap between -3% and 12%
             
             revenue_growth_y5 = st.slider(
                 "Year 5 Revenue Growth (%)", 
-                -10, 15, 
+                -5, 20, 
                 int(suggested_y5),
-                help="Long-term sustainable growth rate (should be closer to GDP growth)"
+                help="Long-term sustainable growth rate (balanced for mature growth phase)"
             )
         
         with col3:
             revenue_growth_terminal = st.slider(
                 "Terminal Growth Rate (%)", 
-                0.0, 3.5, 
-                2.0, 
+                1.0, 4.0, 
+                2.5, 
                 step=0.25,
-                help="Long-term GDP growth rate (typically 2-2.5% for mature economies)"
+                help="Long-term GDP growth rate (typically 2.5-3% for developed economies)"
             )
     
     with st.expander("💰 Profitability Assumptions", expanded=True):
@@ -846,43 +847,43 @@ def show_assumptions_input():
             )
         
         with col2:
-            # Suggest very modest improvement, especially for companies with poor margins
+            # Suggest reasonable margin improvement based on operational efficiency
             if base_ebitda_margin < 0:
-                # For negative margins, suggest gradual improvement to low positive
-                suggested_target = max(min(5, base_ebitda_margin + 10), 0)
-            elif base_ebitda_margin < 10:
-                # For low margins, suggest modest improvement
-                suggested_target = min(base_ebitda_margin + 2, 15)
+                # For negative margins, suggest meaningful improvement to positive territory
+                suggested_target = max(min(8, base_ebitda_margin + 15), 3)
+            elif base_ebitda_margin < 15:
+                # For low margins, suggest good improvement potential
+                suggested_target = min(base_ebitda_margin + 5, 20)
             else:
-                # For decent margins, suggest small improvement
-                suggested_target = min(base_ebitda_margin + 1, 30)
+                # For decent margins, suggest moderate improvement
+                suggested_target = min(base_ebitda_margin + 3, 35)
             
             target_ebitda_margin = st.slider(
                 "Target EBITDA Margin (%)", 
-                -20, 40, 
+                -10, 50, 
                 int(suggested_target),
-                help="Your forecast for mature/optimized margin (be conservative)"
+                help="Your forecast for mature/optimized margin (operational efficiency gains)"
             )
     
     with st.expander("🎯 Valuation Parameters", expanded=True):
         col1, col2 = st.columns(2)
         
         with col1:
-            # Make WACC more conservative (higher) for risky companies
+            # Adjust WACC based on company risk profile (more balanced approach)
             if 'company_data' in st.session_state:
                 company_data = st.session_state.company_data
-                # Increase WACC for companies with poor fundamentals
+                # Moderate WACC adjustments for risk
                 if company_data['financial_metrics'].get('ebitda_margin', 0) < 0:
-                    wacc = max(wacc + 2, 14)  # Higher discount rate for unprofitable companies
+                    wacc = max(wacc + 1, 11)  # Moderate increase for unprofitable companies
                 elif company_data['financial_metrics'].get('ebitda_margin', 0) < 10:
-                    wacc = max(wacc + 1, 12)  # Slightly higher for low-margin companies
+                    wacc = max(wacc + 0.5, 10.5)  # Small increase for low-margin companies
             
             wacc = st.slider(
                 "WACC - Weighted Average Cost of Capital (%)", 
-                8.0, 20.0, 
+                7.0, 16.0, 
                 wacc, 
                 step=0.25,
-                help="Discount rate (higher for riskier companies - conservative approach)"
+                help="Discount rate (reflects company's cost of capital and risk profile)"
             )
         
         with col2:
