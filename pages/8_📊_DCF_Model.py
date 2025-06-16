@@ -89,7 +89,7 @@ class DCFModel:
     
     def __init__(self):
         self.projection_years = 10
-        self.terminal_growth_rate = 2.5
+        self.terminal_growth_rate = 2.0  # More conservative terminal growth
         self.tax_rate = 21.0
         
     def calculate_dcf_valuation(self, assumptions):
@@ -667,17 +667,17 @@ def show_assumptions_input():
     
     st.markdown("### 📝 DCF Assumptions")
     
-    # Initialize default values
-    revenue_growth_y1 = 10
-    revenue_growth_y5 = 5
-    revenue_growth_terminal = 2.5
-    base_ebitda_margin = 20.0
-    target_ebitda_margin = 25.0
-    wacc = 10.0
+    # Initialize conservative default values
+    revenue_growth_y1 = 3
+    revenue_growth_y5 = 2
+    revenue_growth_terminal = 2.0
+    base_ebitda_margin = 15.0
+    target_ebitda_margin = 18.0
+    wacc = 12.0
     tax_rate = 21
-    capex_revenue = 4.0
-    da_revenue = 3.0
-    nwc_revenue = 1.0
+    capex_revenue = 5.0
+    da_revenue = 4.0
+    nwc_revenue = 2.0
     
     # Check if we have company data loaded
     if 'company_data' not in st.session_state:
@@ -718,11 +718,23 @@ def show_assumptions_input():
         # Use loaded company data
         company_data = st.session_state.company_data
         
-        # Display current company info
+        # Display current company info with risk warnings
+        ebitda_margin = company_data['financial_metrics'].get('ebitda_margin', 0)
+        revenue_growth = company_data['growth_metrics'].get('revenue_cagr_3y', 0)
+        
+        risk_warning = ""
+        if ebitda_margin < 0:
+            risk_warning = "⚠️ <strong>High Risk:</strong> Company is currently unprofitable. DCF assumptions have been set conservatively."
+        elif ebitda_margin < 5:
+            risk_warning = "⚠️ <strong>Medium Risk:</strong> Company has low profitability. Conservative assumptions recommended."
+        elif revenue_growth < -10:
+            risk_warning = "⚠️ <strong>High Risk:</strong> Company has declining revenues. Very conservative assumptions recommended."
+        
         st.markdown(f"""
         <div class="assumption-card">
             <h4>🏢 {company_data['company_info']['name']} ({company_data['company_info']['ticker']})</h4>
             <p><strong>Industry:</strong> {company_data['company_info']['industry']} | <strong>Sector:</strong> {company_data['company_info']['sector']}</p>
+            {f'<p style="color: #ff6b6b; margin-top: 10px;">{risk_warning}</p>' if risk_warning else ''}
         </div>
         """, unsafe_allow_html=True)
         
@@ -741,33 +753,44 @@ def show_assumptions_input():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            # Use historical growth as default suggestion
-            historical_growth = st.session_state.get('company_data', {}).get('growth_metrics', {}).get('revenue_cagr_3y', 10)
-            suggested_y1 = max(min(historical_growth, 50), -20)  # Cap between -20% and 50%
+            # Use historical growth as default suggestion, but be more conservative
+            historical_growth = st.session_state.get('company_data', {}).get('growth_metrics', {}).get('revenue_cagr_3y', 3)
+            # For negative historical growth, suggest modest recovery; for positive, be conservative
+            if historical_growth < 0:
+                suggested_y1 = max(historical_growth * 0.5, -15)  # Modest recovery from negative growth
+            else:
+                suggested_y1 = min(historical_growth * 0.7, 15)  # Conservative estimate of positive growth
+            suggested_y1 = max(min(suggested_y1, 15), -15)  # Cap between -15% and 15%
             
             revenue_growth_y1 = st.slider(
                 "Year 1 Revenue Growth (%)", 
-                -20, 50, 
+                -20, 30, 
                 int(suggested_y1), 
-                help="Your forecast for next year's revenue growth"
+                help="Your forecast for next year's revenue growth (conservative default)"
             )
         
         with col2:
-            suggested_y5 = max(min(historical_growth * 0.6, 30), -10)  # Typically lower than Y1
+            # Year 5 should be more conservative and closer to terminal growth
+            if historical_growth < 0:
+                suggested_y5 = max(min(2, historical_growth * 0.3), -5)  # Conservative recovery
+            else:
+                suggested_y5 = min(historical_growth * 0.4, 8)  # Much more conservative
+            suggested_y5 = max(min(suggested_y5, 8), -5)  # Cap between -5% and 8%
+            
             revenue_growth_y5 = st.slider(
                 "Year 5 Revenue Growth (%)", 
-                -10, 30, 
+                -10, 15, 
                 int(suggested_y5),
-                help="Long-term sustainable growth rate"
+                help="Long-term sustainable growth rate (should be closer to GDP growth)"
             )
         
         with col3:
             revenue_growth_terminal = st.slider(
                 "Terminal Growth Rate (%)", 
-                0.0, 4.0, 
-                2.5, 
-                step=0.5,
-                help="Long-term GDP growth rate (typically 2-3%)"
+                0.0, 3.5, 
+                2.0, 
+                step=0.25,
+                help="Long-term GDP growth rate (typically 2-2.5% for mature economies)"
             )
     
     with st.expander("💰 Profitability Assumptions", expanded=True):
@@ -785,25 +808,43 @@ def show_assumptions_input():
             )
         
         with col2:
-            # Suggest modest improvement
-            suggested_target = min(base_ebitda_margin + 3, 50)
+            # Suggest very modest improvement, especially for companies with poor margins
+            if base_ebitda_margin < 0:
+                # For negative margins, suggest gradual improvement to low positive
+                suggested_target = max(min(5, base_ebitda_margin + 10), 0)
+            elif base_ebitda_margin < 10:
+                # For low margins, suggest modest improvement
+                suggested_target = min(base_ebitda_margin + 2, 15)
+            else:
+                # For decent margins, suggest small improvement
+                suggested_target = min(base_ebitda_margin + 1, 30)
+            
             target_ebitda_margin = st.slider(
                 "Target EBITDA Margin (%)", 
-                0, 60, 
+                -20, 40, 
                 int(suggested_target),
-                help="Your forecast for mature/optimized margin"
+                help="Your forecast for mature/optimized margin (be conservative)"
             )
     
     with st.expander("🎯 Valuation Parameters", expanded=True):
         col1, col2 = st.columns(2)
         
         with col1:
+            # Make WACC more conservative (higher) for risky companies
+            if 'company_data' in st.session_state:
+                company_data = st.session_state.company_data
+                # Increase WACC for companies with poor fundamentals
+                if company_data['financial_metrics'].get('ebitda_margin', 0) < 0:
+                    wacc = max(wacc + 2, 14)  # Higher discount rate for unprofitable companies
+                elif company_data['financial_metrics'].get('ebitda_margin', 0) < 10:
+                    wacc = max(wacc + 1, 12)  # Slightly higher for low-margin companies
+            
             wacc = st.slider(
                 "WACC - Weighted Average Cost of Capital (%)", 
-                6.0, 18.0, 
+                8.0, 20.0, 
                 wacc, 
-                step=0.5,
-                help="Discount rate (auto-estimated based on beta and company risk)"
+                step=0.25,
+                help="Discount rate (higher for riskier companies - conservative approach)"
             )
         
         with col2:
