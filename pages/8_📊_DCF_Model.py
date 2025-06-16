@@ -577,6 +577,9 @@ def main():
         - **Healthcare Focus**: Consider R&D, patents, regulation
         """)
     
+    # Show company data preview if just loaded
+    show_company_data_preview()
+    
     # Main DCF interface
     col1, col2 = st.columns([1, 1])
     
@@ -619,8 +622,22 @@ def load_company_data(ticker):
         st.session_state.company_data = company_data
         st.session_state.company_ticker = ticker
         
-        # Display summary
-        st.success(f"✅ Loaded data for {company_data['company_info']['name']}")
+        # Simple success message for sidebar
+        st.success(f"✅ Loaded {company_data['company_info']['name']}")
+        
+        # Store flag to show detailed preview in main area
+        st.session_state.show_company_preview = True
+        
+        return True
+    else:
+        st.error(f"❌ Could not load data for {ticker}")
+        return False
+
+def show_company_data_preview():
+    """Show detailed company data preview in main area"""
+    
+    if 'company_data' in st.session_state and st.session_state.get('show_company_preview', False):
+        company_data = st.session_state.company_data
         
         # Show key metrics preview
         with st.expander("📊 Key Financial Metrics Preview", expanded=True):
@@ -642,10 +659,8 @@ def load_company_data(ticker):
                 st.metric("Net Debt", f"${company_data['balance_sheet']['net_debt']:.0f}M")
                 st.metric("Estimated WACC", f"{company_data['growth_metrics']['estimated_wacc']:.1f}%")
         
-        return True
-    else:
-        st.error(f"❌ Could not load data for {ticker}. Please check the ticker symbol.")
-        return False
+        # Clear the preview flag
+        st.session_state.show_company_preview = False
 
 def show_assumptions_input():
     """Show simplified DCF assumptions input interface using scraped data"""

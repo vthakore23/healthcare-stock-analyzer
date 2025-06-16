@@ -55,29 +55,41 @@ def setup_openai():
     try:
         if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
             api_key = st.secrets["OPENAI_API_KEY"]
-    except Exception:
-        pass
+            if api_key:
+                # Debug: Show first few characters
+                st.caption(f"🔑 API Key loaded: {api_key[:7]}...")
+    except Exception as e:
+        st.warning(f"Could not access secrets: {e}")
     
     # Try environment variable as fallback
     if not api_key:
         api_key = os.getenv("OPENAI_API_KEY")
+        if api_key:
+            st.caption("🔑 API Key loaded from environment")
     
     # Validate and create client
     if api_key and api_key != "your-openai-api-key-here" and api_key.startswith("sk-"):
         try:
+            # Create client without testing connection immediately
             client = openai.OpenAI(api_key=api_key)
-            # Test the connection
-            client.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=5
-            )
             return client, True
         except Exception as e:
-            st.error(f"❌ OpenAI API Error: {e}")
+            st.error(f"❌ OpenAI Client Error: {e}")
             return None, False
     else:
-        st.warning("⚠️ OpenAI API key not configured")
+        if not api_key:
+            st.warning("⚠️ OpenAI API key not found")
+        elif not api_key.startswith("sk-"):
+            st.warning("⚠️ Invalid OpenAI API key format")
+        else:
+            st.warning("⚠️ OpenAI API key not configured properly")
+        
+        st.info("""
+        **To configure OpenAI:**
+        1. Add your API key to `.streamlit/secrets.toml`
+        2. Format: `OPENAI_API_KEY = "sk-proj-your-key"`
+        3. Restart the application
+        """)
         return None, False
 
 def get_stock_data(ticker):
