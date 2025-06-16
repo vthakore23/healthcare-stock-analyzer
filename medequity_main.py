@@ -942,84 +942,27 @@ def get_enhanced_news_sentiment(ticker: str):
     """Get real-time news with enhanced sentiment analysis"""
     
     try:
-        # Import sentiment analysis libraries
-        from textblob import TextBlob
-        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+        # Use the live news scraper
+        from medequity_utils.live_news_scraper import LiveNewsScaper
         
-        analyzer = SentimentIntensityAnalyzer()
+        news_scraper = LiveNewsScaper()
         
-        # Sample news data with real sentiment analysis
-        # In production, this would fetch from news APIs
-        sample_news = [
-            {
-                'title': f'{ticker} Reports Strong Q2 Earnings, Beats Expectations',
-                'source': 'MarketWatch',
-                'published': '2 hours ago',
-                'url': f'https://www.marketwatch.com/story/{ticker.lower()}-earnings-beat'
-            },
-            {
-                'title': f'Analysts Upgrade {ticker} Following Pipeline Developments',
-                'source': 'Bloomberg',
-                'published': '5 hours ago',
-                'url': f'https://www.bloomberg.com/news/{ticker.lower()}-analyst-upgrade'
-            },
-            {
-                'title': f'{ticker} Faces Regulatory Headwinds in Key Market',
-                'source': 'Reuters',
-                'published': '1 day ago',
-                'url': f'https://www.reuters.com/business/{ticker.lower()}-regulatory-challenges'
-            },
-            {
-                'title': f'Healthcare Sector Outlook: {ticker} Positioned for Growth',
-                'source': 'CNBC',
-                'published': '1 day ago',
-                'url': f'https://www.cnbc.com/2025/06/16/{ticker.lower()}-growth-outlook.html'
-            },
-            {
-                'title': f'{ticker} Stock Hits 52-Week High on Partnership News',
-                'source': 'Yahoo Finance',
-                'published': '2 days ago',
-                'url': f'https://finance.yahoo.com/news/{ticker.lower()}-52-week-high'
-            }
-        ]
+        # Get real-time news articles
+        news_articles = news_scraper.get_stock_news(ticker, max_articles=10)
         
-        # Analyze sentiment for each article
-        for article in sample_news:
-            title = article['title']
-            
-            # TextBlob analysis
-            blob = TextBlob(title)
-            polarity = blob.sentiment.polarity
-            
-            # VADER analysis for more nuanced scoring
-            vader_scores = analyzer.polarity_scores(title)
-            compound_score = vader_scores['compound']
-            
-            # Combine scores (average of TextBlob and VADER)
-            final_score = (polarity + compound_score) / 2
-            
-            # Classify sentiment
-            if final_score > 0.1:
-                sentiment_label = 'Positive'
-            elif final_score < -0.1:
-                sentiment_label = 'Negative'
-            else:
-                sentiment_label = 'Neutral'
-            
-            article['sentiment_score'] = final_score
-            article['sentiment_label'] = sentiment_label
-            article['textblob_polarity'] = polarity
-            article['vader_compound'] = compound_score
-        
-        return sample_news
+        if news_articles:
+            return news_articles
+        else:
+            # Fallback to basic sentiment if no articles found
+            return get_basic_sentiment_data(ticker)
         
     except ImportError:
         # Fallback to basic sentiment if libraries not available
-        st.warning("⚠️ Advanced sentiment analysis libraries not available. Using basic analysis.")
+        st.warning("⚠️ Live news scraper not available. Using fallback analysis.")
         return get_basic_sentiment_data(ticker)
     except Exception as e:
-        st.warning(f"📰 News sentiment analysis temporarily unavailable: {str(e)}")
-        return None
+        st.warning(f"📰 Live news analysis temporarily unavailable: {str(e)}")
+        return get_basic_sentiment_data(ticker)
 
 def get_basic_sentiment_data(ticker: str):
     """Basic sentiment data fallback"""
