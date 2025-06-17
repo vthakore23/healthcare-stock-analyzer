@@ -193,32 +193,56 @@ class AdvancedInsiderScreens:
         for trade in insider_trades:
             trade_date = pd.to_datetime(trade['date'])
             
+            # Ensure timezone compatibility
+            if hist.index.tz is not None:
+                if trade_date.tz is None:
+                    trade_date = trade_date.tz_localize(hist.index.tz)
+            else:
+                if trade_date.tz is not None:
+                    trade_date = trade_date.tz_localize(None)
+            
+            # Find closest trading day
+            trade_price = None
             if trade_date in hist.index:
                 trade_price = hist.loc[trade_date, 'Close']
-                current_price = hist['Close'][-1]
+            else:
+                try:
+                    future_dates = hist.index[hist.index >= trade_date]
+                    if len(future_dates) > 0:
+                        trade_price = hist.loc[future_dates[0], 'Close']
+                    else:
+                        past_dates = hist.index[hist.index <= trade_date]
+                        if len(past_dates) > 0:
+                            trade_price = hist.loc[past_dates[-1], 'Close']
+                except Exception:
+                    continue
+            
+            if trade_price is None:
+                continue
                 
-                price_change = (current_price - trade_price) / trade_price * 100
-                
-                if trade['transaction_type'] == 'Purchase':
-                    if price_change > 10:
-                        score += 20
-                    elif price_change > 5:
-                        score += 10
-                    elif price_change < -10:
-                        score -= 15
-                    elif price_change < -5:
-                        score -= 8
-                else:
-                    if price_change < -10:
-                        score += 15
-                    elif price_change < -5:
-                        score += 8
-                    elif price_change > 10:
-                        score -= 10
-                    elif price_change > 5:
-                        score -= 5
-                
-                scored_trades += 1
+            current_price = hist['Close'][-1]
+            price_change = (current_price - trade_price) / trade_price * 100
+            
+            if trade['transaction_type'] == 'Purchase':
+                if price_change > 10:
+                    score += 20
+                elif price_change > 5:
+                    score += 10
+                elif price_change < -10:
+                    score -= 15
+                elif price_change < -5:
+                    score -= 8
+            else:
+                if price_change < -10:
+                    score += 15
+                elif price_change < -5:
+                    score += 8
+                elif price_change > 10:
+                    score -= 10
+                elif price_change > 5:
+                    score -= 5
+            
+            scored_trades += 1
         
         if scored_trades > 0:
             score = score / max(scored_trades, 1) * len(insider_trades)
@@ -677,23 +701,49 @@ class AdvancedInsiderScreens:
             for trade in insider_trades:
                 trade_date = pd.to_datetime(trade['date'])
                 
-                if trade_date in hist.index:
-                    price_at_trade = hist.loc[trade_date, 'Close']
-                elif trade_date < hist.index[-1]:
-                    future_dates = hist.index[hist.index > trade_date]
-                    if len(future_dates) > 0:
-                        trade_date = future_dates[0]
-                        price_at_trade = hist.loc[trade_date, 'Close']
-                    else:
-                        continue
+                # Ensure timezone compatibility
+                if hist.index.tz is not None:
+                    # Price data is timezone-aware, make trade_date timezone-aware too
+                    if trade_date.tz is None:
+                        trade_date = trade_date.tz_localize(hist.index.tz)
                 else:
+                    # Price data is timezone-naive, make trade_date timezone-naive too
+                    if trade_date.tz is not None:
+                        trade_date = trade_date.tz_localize(None)
+                
+                # Find the closest trading day
+                closest_date = None
+                price_at_trade = None
+                
+                if trade_date in hist.index:
+                    closest_date = trade_date
+                    price_at_trade = hist.loc[trade_date, 'Close']
+                else:
+                    # Find the next available trading day
+                    try:
+                        future_dates = hist.index[hist.index >= trade_date]
+                        if len(future_dates) > 0:
+                            closest_date = future_dates[0]
+                            price_at_trade = hist.loc[closest_date, 'Close']
+                        else:
+                            # If no future dates, try previous dates
+                            past_dates = hist.index[hist.index <= trade_date]
+                            if len(past_dates) > 0:
+                                closest_date = past_dates[-1]
+                                price_at_trade = hist.loc[closest_date, 'Close']
+                            else:
+                                continue
+                    except Exception:
+                        continue
+                
+                if closest_date is None or price_at_trade is None:
                     continue
                 
                 current_price = hist['Close'][-1]
                 performance_since_trade = (current_price - price_at_trade) / price_at_trade * 100
                 
                 transaction_data = {
-                    'date': trade_date,
+                    'date': closest_date,
                     'insider_name': trade['insider_name'],
                     'title': trade['title'],
                     'transaction_type': trade['transaction_type'],
@@ -702,7 +752,7 @@ class AdvancedInsiderScreens:
                     'value': trade['value'],
                     'performance_since': performance_since_trade,
                     'chart_annotation': {
-                        'x': trade_date,
+                        'x': closest_date,
                         'y': price_at_trade,
                         'color': '#22c55e' if trade['transaction_type'] == 'Purchase' else '#ef4444',
                         'symbol': 'triangle-up' if trade['transaction_type'] == 'Purchase' else 'triangle-down',
