@@ -462,10 +462,10 @@ st.markdown("""
         margin-bottom: 0.2rem;
     }
     
-    /* Enhanced buttons */
+    /* Enhanced buttons - COMPLETE OVERRIDE */
     .stButton > button {
-        background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.1)) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.15)) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
         border-radius: 12px !important;
         color: var(--text-primary) !important;
         font-weight: 600 !important;
@@ -476,39 +476,170 @@ st.markdown("""
         text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
         font-size: 0.85rem !important;
+        min-height: 2.5rem !important;
     }
     
     .stButton > button:hover {
         transform: translateY(-2px) scale(1.02) !important;
         border-color: var(--accent-blue) !important;
         box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3) !important;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.1)) !important;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.15)) !important;
+        color: white !important;
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0px) scale(0.98) !important;
     }
     
     .stButton > button[data-testid="baseButton-primary"] {
         background: linear-gradient(135deg, var(--accent-blue), #2563eb) !important;
         border-color: var(--accent-blue) !important;
+        color: white !important;
     }
     
     .stButton > button[data-testid="baseButton-primary"]:hover {
         background: linear-gradient(135deg, #2563eb, var(--accent-green)) !important;
         box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4) !important;
+        color: white !important;
     }
     
-    /* Input styling */
+    /* Force dark theme on ALL button variants */
+    button[kind="primary"], button[kind="secondary"], button[kind="tertiary"] {
+        background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.15)) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    button[kind="primary"]:hover, button[kind="secondary"]:hover, button[kind="tertiary"]:hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.15)) !important;
+        color: white !important;
+    }
+    
+    /* Input styling - COMPLETE OVERRIDE */
     .stTextInput > div > div > input {
         background: var(--glass-bg) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
         border-radius: 12px !important;
         color: var(--text-primary) !important;
         backdrop-filter: blur(10px) !important;
         padding: 1rem !important;
         font-size: 1rem !important;
+        box-shadow: var(--shadow-soft) !important;
     }
     
     .stTextInput > div > div > input:focus {
         border-color: var(--accent-blue) !important;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2) !important;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
+        background: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.8 !important;
+    }
+    
+    /* Number input styling */
+    .stNumberInput > div > div > input {
+        background: var(--glass-bg) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--text-primary) !important;
+        backdrop-filter: blur(10px) !important;
+        padding: 1rem !important;
+        font-size: 1rem !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+    
+    /* Checkbox styling */
+    .stCheckbox > label {
+        color: var(--text-primary) !important;
+        font-weight: 500 !important;
+    }
+    
+    .stCheckbox > label > div[data-testid="stCheckbox"] > div {
+        background-color: var(--glass-bg) !important;
+        border: 2px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox > div > div {
+        background: var(--glass-bg) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 12px !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Force all interactive elements to dark theme */
+    div[data-testid="stForm"] {
+        background: var(--glass-bg) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        padding: 2rem !important;
+        backdrop-filter: blur(15px) !important;
+    }
+    
+    /* Better spacing for sections */
+    .main-section {
+        margin: 3rem 0 !important;
+        padding: 2rem 0 !important;
+    }
+    
+    .card-section {
+        margin: 2rem 0 !important;
+        padding: 1.5rem 0 !important;
+    }
+    
+    .button-section {
+        margin: 1.5rem 0 !important;
+        padding: 1rem 0 !important;
+    }
+    
+    /* Column spacing improvements */
+    div[data-testid="column"] {
+        padding: 0.5rem !important;
+    }
+    
+    div[data-testid="column"]:first-child {
+        padding-left: 0 !important;
+    }
+    
+    div[data-testid="column"]:last-child {
+        padding-right: 0 !important;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Custom dataframe styling */
+    .stDataFrame {
+        background: var(--glass-bg);
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Sidebar enhancements */
+    .css-1d391kg {
+        background: var(--secondary-bg);
+        backdrop-filter: blur(20px);
+    }
+    
+    /* Additional spacing improvements */
+    .stMarkdown {
+        margin-bottom: 1rem;
+    }
+    
+    /* Column spacing */
+    .element-container {
+        margin-bottom: 1rem;
+    }
+    
+    div[data-testid="column"]:last-child {
+        padding-right: 0 !important;
     }
     
     /* Loading animation */
@@ -552,6 +683,11 @@ st.markdown("""
         font-weight: 700;
     }
     
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
     /* Better spacing utilities */
     .section-spacing {
         margin: 3rem 0;
@@ -564,38 +700,59 @@ st.markdown("""
     .content-spacing {
         padding: 2rem 0;
     }
-    
-    /* Hide Streamlit branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Custom dataframe styling */
-    .stDataFrame {
-        background: var(--glass-bg);
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-    }
-    
-    /* Sidebar enhancements */
-    .css-1d391kg {
-        background: var(--secondary-bg);
-        backdrop-filter: blur(20px);
-    }
-    
-    /* Additional spacing improvements */
-    .stMarkdown {
-        margin-bottom: 1rem;
-    }
-    
-    /* Column spacing */
-    .element-container {
-        margin-bottom: 1rem;
-    }
 </style>
 """, unsafe_allow_html=True)
+
+# Alert persistence system
+def load_sent_alerts():
+    """Load previously sent alerts from file"""
+    import json
+    import os
+    
+    alerts_file = ".streamlit/sent_alerts.json"
+    
+    if os.path.exists(alerts_file):
+        try:
+            with open(alerts_file, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+    
+    return {}
+
+def save_sent_alerts(sent_alerts):
+    """Save sent alerts to file"""
+    import json
+    import os
+    
+    os.makedirs(".streamlit", exist_ok=True)
+    alerts_file = ".streamlit/sent_alerts.json"
+    
+    try:
+        with open(alerts_file, 'w') as f:
+            json.dump(sent_alerts, f)
+    except:
+        pass
+
+def should_send_alert(alert_id, alert_data):
+    """Check if alert should be sent (not sent before)"""
+    if 'sent_alerts' not in st.session_state:
+        st.session_state.sent_alerts = load_sent_alerts()
+    
+    # Check if this exact alert was sent before
+    if alert_id in st.session_state.sent_alerts:
+        return False
+    
+    # Mark as sent
+    st.session_state.sent_alerts[alert_id] = {
+        'timestamp': time.time(),
+        'data': alert_data
+    }
+    
+    # Save to file
+    save_sent_alerts(st.session_state.sent_alerts)
+    
+    return True
 
 def main():
     # Ultra-modern header
@@ -736,16 +893,23 @@ def display_system_status():
 
 def show_ultra_stock_analysis():
     """Ultra-modern stock analysis interface with improved spacing"""
+    
+    # Add main section spacing
+    st.markdown('<div class="main-section"></div>', unsafe_allow_html=True)
+    
     st.markdown("""
-    <div class="glass-card section-spacing">
+    <div class="glass-card">
         <h2 style="color: #3b82f6; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">
             📊 ADVANCED STOCK INTELLIGENCE
         </h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0;">
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0; font-size: 1.1rem;">
             Real-time analysis with institutional-grade insights
         </p>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Add spacing
+    st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
     
     # Input section with better spacing
     col1, col2 = st.columns([3, 1])
@@ -760,12 +924,12 @@ def show_ultra_stock_analysis():
         )
     
     with col2:
-        st.markdown('<div style="margin-top: 1.7rem;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top: 0.5rem;"></div>', unsafe_allow_html=True)
         if st.button("🚀 ANALYZE", type="primary", use_container_width=True):
             if ticker:
                 analyze_ultra_stock(ticker.upper())
 
-    # Add spacing
+    # Add substantial spacing
     st.markdown('<div class="section-spacing"></div>', unsafe_allow_html=True)
 
     # Enhanced popular stocks with better layout
@@ -774,7 +938,7 @@ def show_ultra_stock_analysis():
         <h3 style="color: #10b981; font-weight: 800; margin-bottom: 2rem; text-align: center;">
             🎯 POPULAR HEALTHCARE STOCKS
         </h3>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem;">
             Click any stock for instant analysis • Live insider activity indicators
         </p>
     </div>
@@ -787,7 +951,7 @@ def show_ultra_stock_analysis():
     create_feature_showcase()
 
 def create_ultra_stock_grid():
-    """Create ultra-modern stock selection grid with stunning styling"""
+    """Create ultra-modern stock selection grid with stunning styling and proper spacing"""
     stock_categories = {
         "💊 BIG PHARMA": [("PFE", "🟢", "Pfizer"), ("JNJ", "🟡", "J&J"), ("MRK", "🟢", "Merck"), ("ABBV", "🔴", "AbbVie")],
         "🧬 BIOTECH": [("MRNA", "🟢", "Moderna"), ("BNTX", "🟡", "BioNTech"), ("REGN", "🟢", "Regeneron"), ("VRTX", "🟡", "Vertex")],
@@ -795,7 +959,7 @@ def create_ultra_stock_grid():
         "🏥 HEALTHCARE": [("UNH", "🟢", "UnitedHealth"), ("CVS", "🟡", "CVS Health"), ("HCA", "🟡", "HCA"), ("CNC", "🔴", "Centene")]
     }
     
-    cols = st.columns(4)
+    cols = st.columns(4, gap="large")
     
     for i, (category, stocks) in enumerate(stock_categories.items()):
         with cols[i]:
@@ -806,32 +970,13 @@ def create_ultra_stock_grid():
             </div>
             """, unsafe_allow_html=True)
             
-            # Add some spacing
-            st.markdown('<div style="margin: 1rem 0;"></div>', unsafe_allow_html=True)
+            # Add spacing between header and buttons
+            st.markdown('<div style="margin: 1.5rem 0;"></div>', unsafe_allow_html=True)
             
             for ticker, indicator, name in stocks:
                 indicator_meaning = get_ultra_indicator_meaning(indicator)
                 
-                # Use custom HTML button with new styling
-                button_html = f"""
-                <div class="stock-button" style="cursor: pointer;" onclick="streamlit.setComponentValue('{ticker}')">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.2rem;">
-                                {ticker}
-                            </div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); opacity: 0.8;">
-                                {name}
-                            </div>
-                        </div>
-                        <div style="font-size: 1.2rem; animation: pulse 2s infinite;">
-                            {indicator}
-                        </div>
-                    </div>
-                </div>
-                """
-                
-                # Create a clickable button with proper spacing
+                # Custom styled button with proper spacing
                 if st.button(
                     f"{indicator} {ticker} - {name}", 
                     key=f"ultra_{ticker}",
@@ -841,7 +986,7 @@ def create_ultra_stock_grid():
                     analyze_ultra_stock(ticker)
                 
                 # Add spacing between buttons
-                st.markdown('<div style="margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
+                st.markdown('<div style="margin: 0.8rem 0;"></div>', unsafe_allow_html=True)
 
 def create_feature_showcase():
     """Create feature showcase cards with stunning visuals and proper spacing"""
@@ -1098,24 +1243,31 @@ def create_ultra_price_chart(ticker, hist):
 
 def show_ultra_smart_alerts():
     """Ultra-modern smart alerts interface with improved layout"""
+    
+    # Add main section spacing
+    st.markdown('<div class="main-section"></div>', unsafe_allow_html=True)
+    
     st.markdown("""
-    <div class="glass-card section-spacing">
+    <div class="glass-card">
         <h2 style="color: #ef4444; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">
             🚨 SMART ALERT COMMAND CENTER
         </h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0;">
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0; font-size: 1.1rem;">
             Real-time insider trading intelligence with instant mobile notifications
         </p>
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([2, 1])
+    # Add spacing
+    st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([2, 1], gap="large")
     
     with col1:
         st.markdown("""
         <div class="alert-success">
             <h3 style="color: #10b981; margin-bottom: 1rem; font-weight: 800;">📱 INSIDER ALERT SYSTEM</h3>
-            <p style="margin-bottom: 1rem;">Advanced SEC filing monitoring with real-time executive trading detection and pattern recognition AI</p>
+            <p style="margin-bottom: 1rem; font-size: 1rem;">Advanced SEC filing monitoring with real-time executive trading detection and pattern recognition AI</p>
             <div style="margin-top: 1.5rem;">
                 <span style="background: rgba(16, 185, 129, 0.2); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; margin-right: 0.8rem; font-weight: 600;">REAL-TIME</span>
                 <span style="background: rgba(59, 130, 246, 0.2); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; margin-right: 0.8rem; font-weight: 600;">AI-POWERED</span>
@@ -1126,21 +1278,30 @@ def show_ultra_smart_alerts():
         
         # Alert configuration matrix with better spacing
         st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
-        st.markdown("### ⚙️ ALERT CONFIGURATION MATRIX")
         
-        col1a, col1b = st.columns(2)
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #f59e0b; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">⚙️ ALERT CONFIGURATION MATRIX</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1a, col1b = st.columns(2, gap="medium")
         
         with col1a:
             exec_alerts = st.checkbox("🎯 Executive Purchases ($1M+)", value=True)
+            st.markdown('<div style="margin: 0.8rem 0;"></div>', unsafe_allow_html=True)
             cluster_alerts = st.checkbox("🔥 Clustered Buying Activity", value=True)
+            st.markdown('<div style="margin: 0.8rem 0;"></div>', unsafe_allow_html=True)
             momentum_alerts = st.checkbox("📈 Insider Momentum Signals", value=False)
         
         with col1b:
             large_purchase = st.checkbox("💰 Large Transactions ($5M+)", value=True)
+            st.markdown('<div style="margin: 0.8rem 0;"></div>', unsafe_allow_html=True)
             pattern_alerts = st.checkbox("🧠 AI Pattern Recognition", value=True)
+            st.markdown('<div style="margin: 0.8rem 0;"></div>', unsafe_allow_html=True)
             sector_alerts = st.checkbox("🏥 Healthcare-Specific", value=True)
         
-        st.markdown('<div style="margin: 1.5rem 0;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="button-section"></div>', unsafe_allow_html=True)
         
         if st.button("💾 SAVE CONFIGURATION", type="primary", use_container_width=True):
             st.success("✅ Alert configuration saved! Access full system in Insider Intelligence for advanced setup.")
@@ -1162,14 +1323,19 @@ def show_ultra_smart_alerts():
         
         for feature, status, css_class in alert_stats:
             st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; padding: 1rem; margin: 0.8rem 0; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                <span style="color: #94a3b8; font-weight: 600;">{feature}</span>
-                <span class="{css_class}" style="font-weight: 700;">{status}</span>
+            <div style="display: flex; justify-content: space-between; padding: 1.2rem; margin: 1rem 0; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);">
+                <span style="color: #94a3b8; font-weight: 600; font-size: 0.9rem;">{feature}</span>
+                <span class="{css_class}" style="font-weight: 700; font-size: 0.9rem;">{status}</span>
             </div>
             """, unsafe_allow_html=True)
         
-        st.markdown('<div style="margin: 2rem 0;"></div>', unsafe_allow_html=True)
-        st.markdown("### 📱 RECENT ALERTS")
+        st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="glass-card">
+            <h4 style="color: #10b981; font-weight: 700; margin-bottom: 1rem; text-align: center;">📱 RECENT ALERTS</h4>
+        </div>
+        """, unsafe_allow_html=True)
         
         recent_alerts = [
             ("🟢 PFE", "CEO Purchase", "$2.5M", "2 hrs ago"),
@@ -1180,42 +1346,51 @@ def show_ultra_smart_alerts():
         
         for ticker, action, amount, time in recent_alerts:
             st.markdown(f"""
-            <div style="padding: 0.8rem; margin: 0.5rem 0; background: rgba(255,255,255,0.04); border-radius: 10px; border-left: 3px solid #3b82f6; backdrop-filter: blur(5px);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                    <span style="font-weight: 700; color: #f1f5f9;">{ticker} {action}</span>
-                    <span style="color: #10b981; font-family: 'JetBrains Mono'; font-weight: 600;">{amount}</span>
+            <div style="padding: 1rem; margin: 0.8rem 0; background: rgba(255,255,255,0.05); border-radius: 12px; border-left: 3px solid #3b82f6; backdrop-filter: blur(5px);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 700; color: #f1f5f9; font-size: 0.9rem;">{ticker} {action}</span>
+                    <span style="color: #10b981; font-family: 'JetBrains Mono'; font-weight: 600; font-size: 0.85rem;">{amount}</span>
                 </div>
                 <div style="font-size: 0.8rem; color: #64748b;">{time}</div>
             </div>
             """, unsafe_allow_html=True)
         
-        st.markdown('<div style="margin: 1.5rem 0;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="button-section"></div>', unsafe_allow_html=True)
         
         if st.button("📱 VIEW ALL ALERTS", use_container_width=True):
             st.info("💡 Access complete alert history in the Insider Intelligence system")
 
 def show_ultra_portfolio():
-    """Ultra-modern portfolio interface"""
+    """Ultra-modern portfolio interface with enhanced spacing"""
+    
+    # Add main section spacing
+    st.markdown('<div class="main-section"></div>', unsafe_allow_html=True)
+    
     st.markdown("""
     <div class="glass-card">
-        <h2 style="color: #10b981; font-weight: 800; margin-bottom: 1rem;">
+        <h2 style="color: #10b981; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">
             📈 PORTFOLIO COMMAND CENTER
         </h2>
-        <p style="color: #94a3b8;">Advanced portfolio tracking with real-time analytics</p>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0; font-size: 1.1rem;">
+            Advanced portfolio tracking with real-time analytics
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
+    # Add spacing
+    st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+    
     # Portfolio input section
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([2, 1], gap="large")
     
     with col1:
         st.markdown("""
         <div class="glass-card">
-            <h3 style="color: #3b82f6; font-weight: 700;">📝 ADD POSITION</h3>
+            <h3 style="color: #3b82f6; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📝 ADD POSITION</h3>
         </div>
         """, unsafe_allow_html=True)
         
-        col1a, col1b, col1c = st.columns(3)
+        col1a, col1b, col1c = st.columns(3, gap="medium")
         
         with col1a:
             ticker = st.text_input("🎯 Ticker:", placeholder="e.g., PFE")
@@ -1226,6 +1401,8 @@ def show_ultra_portfolio():
         with col1c:
             avg_price = st.number_input("💰 Avg Price:", min_value=0.0, step=0.01)
         
+        st.markdown('<div class="button-section"></div>', unsafe_allow_html=True)
+        
         if st.button("➕ ADD TO PORTFOLIO", type="primary", use_container_width=True):
             if ticker and shares > 0 and avg_price > 0:
                 add_to_ultra_portfolio(ticker.upper(), shares, avg_price)
@@ -1234,7 +1411,7 @@ def show_ultra_portfolio():
     with col2:
         st.markdown("""
         <div class="glass-card">
-            <h3 style="color: #f59e0b; font-weight: 700;">📊 PORTFOLIO METRICS</h3>
+            <h3 style="color: #f59e0b; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📊 PORTFOLIO METRICS</h3>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1255,17 +1432,23 @@ def show_ultra_portfolio():
             for label, value in metrics:
                 color = "#10b981" if "+" in value or label in ["Total Value", "Total Cost"] else "#ef4444"
                 st.markdown(f"""
-                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <span style="color: #94a3b8;">{label}</span>
-                    <span style="color: {color}; font-family: 'JetBrains Mono'; font-weight: 600;">{value}</span>
+                <div style="display: flex; justify-content: space-between; padding: 1rem; margin: 0.8rem 0; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);">
+                    <span style="color: #94a3b8; font-weight: 600;">{label}</span>
+                    <span style="color: {color}; font-family: 'JetBrains Mono'; font-weight: 700;">{value}</span>
                 </div>
                 """, unsafe_allow_html=True)
     
     # Portfolio actions
     if 'ultra_portfolio' in st.session_state and st.session_state.ultra_portfolio:
-        st.markdown("### 🎯 PORTFOLIO ACTIONS")
+        st.markdown('<div class="section-spacing"></div>', unsafe_allow_html=True)
         
-        col1, col2, col3 = st.columns(3)
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #a855f7; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">🎯 PORTFOLIO ACTIONS</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3, gap="medium")
         
         with col1:
             if st.button("🎯 SCREEN PORTFOLIO", use_container_width=True):
@@ -1281,7 +1464,14 @@ def show_ultra_portfolio():
                 st.success("🚨 Configure portfolio alerts in the Insider Intelligence system")
         
         # Portfolio holdings table
-        st.markdown("### 📋 CURRENT HOLDINGS")
+        st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="glass-card">
+            <h4 style="color: #3b82f6; font-weight: 700; margin-bottom: 1rem; text-align: center;">📋 CURRENT HOLDINGS</h4>
+        </div>
+        """, unsafe_allow_html=True)
+        
         df = pd.DataFrame(st.session_state.ultra_portfolio)
         
         # Style the dataframe
