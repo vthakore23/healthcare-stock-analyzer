@@ -176,7 +176,7 @@ st.markdown("""
         overflow: hidden;
         transition: all 0.4s ease;
         box-shadow: var(--shadow-soft);
-        margin: 0.5rem 0;
+        margin: 0.8rem 0;
     }
     
     .metric-ultra::before {
@@ -205,18 +205,20 @@ st.markdown("""
         font-size: 2.4rem;
         font-weight: 800;
         font-family: 'JetBrains Mono', monospace;
-        color: var(--text-primary);
+        color: var(--text-primary) !important;
         margin-bottom: 0.8rem;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        line-height: 1.1;
     }
     
     .metric-label {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: var(--text-secondary) !important;
         text-transform: uppercase;
         letter-spacing: 1.5px;
         font-weight: 600;
         margin-bottom: 0.5rem;
+        opacity: 0.9;
     }
     
     .metric-change {
@@ -225,67 +227,258 @@ st.markdown("""
         font-family: 'JetBrains Mono', monospace;
     }
     
-    .metric-positive { color: var(--accent-green); }
-    .metric-negative { color: var(--accent-red); }
+    .metric-positive { 
+        color: var(--accent-green) !important; 
+        text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
     
-    /* Stunning stock buttons */
-    .stock-button {
-        background: linear-gradient(135deg, var(--card-bg), rgba(59, 130, 246, 0.1)) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 1rem 1.5rem !important;
+    .metric-negative { 
+        color: var(--accent-red) !important; 
+        text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+    
+    /* Fix Streamlit metrics specifically */
+    .stMetric > div {
+        background: var(--glass-bg) !important;
+        border: 1px solid rgba(59, 130, 246, 0.2) !important;
+        border-radius: 16px !important;
+        padding: 1.5rem !important;
+        margin: 0.8rem 0 !important;
+    }
+    
+    .stMetric > div > div {
         color: var(--text-primary) !important;
+    }
+    
+    .stMetric > div > div > div {
+        color: var(--text-primary) !important;
+    }
+    
+    .stMetric label {
+        color: var(--text-secondary) !important;
         font-weight: 600 !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+    }
+    
+    .stMetric [data-testid="metric-container"] {
+        background: var(--glass-bg) !important;
+        border: 1px solid rgba(59, 130, 246, 0.2) !important;
+        border-radius: 16px !important;
+        padding: 1.5rem !important;
         backdrop-filter: blur(10px) !important;
-        box-shadow: var(--shadow-soft) !important;
-        margin: 0.3rem 0 !important;
-        text-align: left !important;
-        position: relative !important;
-        overflow: hidden !important;
     }
     
-    .stock-button:hover {
-        transform: translateY(-3px) scale(1.02) !important;
-        border-color: var(--accent-blue) !important;
-        box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2) !important;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(16, 185, 129, 0.1)) !important;
+    .stMetric [data-testid="metric-container"] > div {
+        color: var(--text-primary) !important;
     }
     
-    .stock-button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        transition: left 0.5s;
+    /* Fix all text elements */
+    .stMarkdown, .stMarkdown * {
+        color: var(--text-primary) !important;
     }
     
-    .stock-button:hover::before {
-        left: 100%;
+    .stText {
+        color: var(--text-primary) !important;
     }
     
-    /* Category headers */
+    /* Enhanced spacing for main sections */
+    .main-content {
+        padding: 2rem 1rem !important;
+        margin: 2rem 0 !important;
+    }
+    
+    .section-header {
+        margin: 3rem 0 2rem 0 !important;
+        padding: 2rem 0 !important;
+    }
+    
+    .content-block {
+        margin: 2rem 0 !important;
+        padding: 1.5rem 0 !important;
+    }
+    
+    .button-group {
+        margin: 2rem 0 !important;
+        padding: 1rem 0 !important;
+    }
+    
+    /* Better card spacing */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin: 2rem 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+    }
+    
+    .glass-card h1, .glass-card h2, .glass-card h3, .glass-card h4, .glass-card h5 {
+        color: var(--text-primary) !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .glass-card p {
+        color: var(--text-secondary) !important;
+        line-height: 1.6 !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Stock grid improvements */
     .category-header {
         background: linear-gradient(135deg, var(--glass-bg), rgba(59, 130, 246, 0.08));
         backdrop-filter: blur(10px);
         border: 1px solid rgba(59, 130, 246, 0.2);
         border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1rem 0;
+        padding: 2rem;
+        margin: 2rem 0;
         text-align: center;
         box-shadow: var(--shadow-soft);
     }
     
     .category-title {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: 800;
-        color: var(--accent-blue);
+        color: var(--accent-blue) !important;
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 1px;
+    }
+    
+    /* Enhanced column spacing */
+    .stColumn {
+        padding: 1rem !important;
+    }
+    
+    .stColumn:first-child {
+        padding-left: 0 !important;
+    }
+    
+    .stColumn:last-child {
+        padding-right: 0 !important;
+    }
+    
+    /* Row spacing */
+    .row {
+        margin: 2rem 0 !important;
+    }
+    
+    /* Chart container improvements */
+    .js-plotly-plot {
+        background: var(--glass-bg) !important;
+        border-radius: 16px !important;
+        padding: 1rem !important;
+        margin: 1.5rem 0 !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Tab improvements */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 16px;
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 3rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        border-radius: 12px;
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.9rem;
+        padding: 1.2rem 2rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0.5rem;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+        color: white !important;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* Sidebar improvements */
+    .css-1d391kg {
+        background: var(--secondary-bg);
+        backdrop-filter: blur(20px);
+        padding: 2rem 1rem !important;
+    }
+    
+    /* Better spacing between elements */
+    .element-container {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .stSelectbox, .stTextInput, .stNumberInput {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Alert boxes with better spacing */
+    .alert-success, .alert-warning, .alert-info {
+        margin: 2rem 0 !important;
+        padding: 2rem !important;
+    }
+    
+    /* Market cards with enhanced spacing */
+    .market-card {
+        background: var(--glass-bg);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin: 1.2rem 0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .market-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .market-card:hover::before {
+        opacity: 1;
+    }
+    
+    .market-card:hover {
+        border-color: var(--accent-blue);
+        transform: scale(1.03) translateY(-2px);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+    }
+    
+    .market-symbol {
+        font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-primary) !important;
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .market-price {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+        color: var(--text-primary) !important;
     }
     
     /* Feature showcase cards with better spacing */
@@ -327,14 +520,14 @@ st.markdown("""
     .feature-title {
         font-size: 1.5rem;
         font-weight: 800;
-        color: var(--accent-green);
+        color: var(--accent-green) !important;
         margin-bottom: 1.2rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
     .feature-description {
-        color: var(--text-secondary);
+        color: var(--text-secondary) !important;
         line-height: 1.7;
         margin-bottom: 1.5rem;
         font-size: 1rem;
@@ -342,39 +535,10 @@ st.markdown("""
     
     .feature-tags {
         font-size: 0.85rem;
-        color: var(--accent-blue);
+        color: var(--accent-blue) !important;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-    }
-    
-    /* Improved tabs styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 12px;
-        background: var(--card-bg);
-        border-radius: 16px;
-        padding: 0.8rem;
-        margin-bottom: 2rem;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: transparent;
-        border-radius: 12px;
-        color: var(--text-secondary);
-        font-weight: 700;
-        font-size: 0.9rem;
-        padding: 1rem 1.5rem;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, var(--accent-blue), #2563eb);
-        color: white;
-        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
     }
     
     /* Enhanced alert boxes */
@@ -383,10 +547,14 @@ st.markdown("""
         border: 1px solid rgba(16, 185, 129, 0.3);
         border-left: 4px solid var(--accent-green);
         border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
+        padding: 2rem;
+        margin: 2rem 0;
         backdrop-filter: blur(10px);
         box-shadow: var(--shadow-soft);
+    }
+    
+    .alert-success h3, .alert-success p {
+        color: var(--text-primary) !important;
     }
     
     .alert-warning {
@@ -394,10 +562,14 @@ st.markdown("""
         border: 1px solid rgba(245, 158, 11, 0.3);
         border-left: 4px solid var(--accent-yellow);
         border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
+        padding: 2rem;
+        margin: 2rem 0;
         backdrop-filter: blur(10px);
         box-shadow: var(--shadow-soft);
+    }
+    
+    .alert-warning h3, .alert-warning p {
+        color: var(--text-primary) !important;
     }
     
     .alert-info {
@@ -405,61 +577,14 @@ st.markdown("""
         border: 1px solid rgba(59, 130, 246, 0.3);
         border-left: 4px solid var(--accent-blue);
         border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
+        padding: 2rem;
+        margin: 2rem 0;
         backdrop-filter: blur(10px);
         box-shadow: var(--shadow-soft);
     }
     
-    /* Improved market cards */
-    .market-card {
-        background: var(--glass-bg);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 14px;
-        padding: 1.2rem;
-        margin: 0.8rem 0;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        box-shadow: var(--shadow-soft);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .market-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    .market-card:hover::before {
-        opacity: 1;
-    }
-    
-    .market-card:hover {
-        border-color: var(--accent-blue);
-        transform: scale(1.03) translateY(-2px);
-        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
-    }
-    
-    .market-symbol {
-        font-weight: 800;
-        font-family: 'JetBrains Mono', monospace;
-        color: var(--text-primary);
-        font-size: 1rem;
-        margin-bottom: 0.3rem;
-    }
-    
-    .market-price {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.9rem;
-        font-weight: 600;
-        margin-bottom: 0.2rem;
+    .alert-info h3, .alert-info p {
+        color: var(--text-primary) !important;
     }
     
     /* Enhanced buttons - COMPLETE OVERRIDE */
@@ -912,19 +1037,19 @@ def show_ultra_stock_analysis():
     st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
     
     # Input section with better spacing
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([3, 1], gap="medium")
     
     with col1:
         ticker = st.text_input(
-            "",
+            "Stock Ticker",
             placeholder="🔍 Enter ticker symbol (e.g., PFE, JNJ, MRNA)",
             help="Enter any healthcare stock symbol for deep analysis",
             key="ticker_input",
-            label_visibility="collapsed"
+            label_visibility="hidden"
         )
     
     with col2:
-        st.markdown('<div style="margin-top: 0.5rem;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top: 1.8rem;"></div>', unsafe_allow_html=True)
         if st.button("🚀 ANALYZE", type="primary", use_container_width=True):
             if ticker:
                 analyze_ultra_stock(ticker.upper())
@@ -1073,7 +1198,7 @@ def analyze_ultra_stock(ticker):
             st.error(f"🚨 Error analyzing {ticker}: {str(e)}")
 
 def display_ultra_stock_analysis(ticker, info, hist):
-    """Display ultra-enhanced stock analysis"""
+    """Display ultra-enhanced stock analysis with perfect styling"""
     
     # Header with company info
     company_name = info.get('longName', ticker)
@@ -1081,71 +1206,97 @@ def display_ultra_stock_analysis(ticker, info, hist):
     
     st.markdown(f"""
     <div class="glass-card">
-        <h2 style="color: #3b82f6; font-weight: 800; margin-bottom: 0.5rem;">
+        <h2 style="color: #3b82f6; font-weight: 800; margin-bottom: 1rem; text-align: center;">
             📊 {ticker} - {company_name}
         </h2>
-        <p style="color: #64748b; margin: 0;">Sector: {sector}</p>
+        <p style="color: #94a3b8; margin: 0; text-align: center; font-size: 1rem;">Sector: {sector}</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Ultra-modern metrics dashboard
-    col1, col2, col3, col4, col5 = st.columns(5)
+    # Add spacing
+    st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
     
+    # Ultra-modern metrics dashboard with HTML
     current_price = hist['Close'].iloc[-1]
     price_change = ((current_price - hist['Close'].iloc[-2]) / hist['Close'].iloc[-2]) * 100
     market_cap = info.get('marketCap', 0)
     pe_ratio = info.get('forwardPE', info.get('trailingPE', 0))
     volume = hist['Volume'].iloc[-1]
+    score = calculate_ultra_score(info)
+    
+    # Create 5 column layout for metrics
+    col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
     
     metrics_data = [
         ("PRICE", f"${current_price:.2f}", f"{price_change:+.2f}%", price_change >= 0),
         ("MARKET CAP", format_market_cap(market_cap), "", True),
         ("P/E RATIO", f"{pe_ratio:.1f}" if pe_ratio else "N/A", "", True),
         ("VOLUME", format_volume(volume), "", True),
-        ("SCORE", f"{calculate_ultra_score(info)}/100", get_score_rating(calculate_ultra_score(info)), True)
+        ("SCORE", f"{score}/100", get_score_rating(score), True)
     ]
     
+    columns = [col1, col2, col3, col4, col5]
+    
     for i, (label, value, change, is_positive) in enumerate(metrics_data):
-        with [col1, col2, col3, col4, col5][i]:
-            change_class = "metric-positive" if is_positive else "metric-negative"
+        with columns[i]:
+            change_color = "#10b981" if is_positive and change else "#ef4444" if change else "#94a3b8"
+            
             st.markdown(f"""
             <div class="metric-ultra">
-                <div class="metric-value">{value}</div>
-                <div class="metric-label">{label}</div>
-                {f'<div class="metric-change {change_class}">{change}</div>' if change else ''}
+                <div class="metric-value" style="color: #f1f5f9 !important;">{value}</div>
+                <div class="metric-label" style="color: #94a3b8 !important;">{label}</div>
+                {f'<div class="metric-change" style="color: {change_color} !important;">{change}</div>' if change else ''}
             </div>
             """, unsafe_allow_html=True)
     
+    # Add spacing between metrics and analysis
+    st.markdown('<div class="section-spacing"></div>', unsafe_allow_html=True)
+    
     # Advanced analysis sections
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([2, 1], gap="large")
     
     with col1:
         # Ultra-modern price chart
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #3b82f6; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📈 TECHNICAL ANALYSIS</h3>
+        </div>
+        """, unsafe_allow_html=True)
         create_ultra_price_chart(ticker, hist)
     
     with col2:
         # Key insights and actions
         st.markdown("""
         <div class="glass-card">
-            <h3 style="color: #10b981; font-weight: 700;">🎯 KEY INSIGHTS</h3>
+            <h3 style="color: #10b981; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">🎯 KEY INSIGHTS</h3>
         </div>
         """, unsafe_allow_html=True)
         
         insights = generate_ultra_insights(ticker, info, hist)
         for insight in insights:
-            st.markdown(f"• {insight}")
+            st.markdown(f"""
+            <div style="padding: 0.8rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid #10b981;">
+                <span style="color: #f1f5f9; font-size: 0.9rem;">• {insight}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
         
         st.markdown("""
-        <div class="glass-card" style="margin-top: 1rem;">
-            <h3 style="color: #f59e0b; font-weight: 700;">⚡ QUICK ACTIONS</h3>
+        <div class="glass-card">
+            <h3 style="color: #f59e0b; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">⚡ QUICK ACTIONS</h3>
         </div>
         """, unsafe_allow_html=True)
         
         if st.button("📱 Setup Alerts", key=f"alert_{ticker}", use_container_width=True):
             st.success(f"🎯 Configure insider alerts for {ticker} in the Insider Intelligence system")
         
+        st.markdown('<div style="margin: 1rem 0;"></div>', unsafe_allow_html=True)
+        
         if st.button("🎯 Find Similar", key=f"screen_{ticker}", use_container_width=True):
             st.success(f"🔍 Screen for stocks similar to {ticker} in the Advanced Screening Engine")
+        
+        st.markdown('<div style="margin: 1rem 0;"></div>', unsafe_allow_html=True)
         
         if st.button("📈 Deep Valuation", key=f"valuation_{ticker}", use_container_width=True):
             st.success(f"📊 Analyze {ticker} valuation in the Valuation AI Engine")
