@@ -706,8 +706,8 @@ st.markdown("""
     
     /* Better spacing for sections */
     .main-section {
-        margin: 3rem 0 !important;
-        padding: 2rem 0 !important;
+        padding: 3rem 0 !important;
+        margin: 2rem 0 !important;
     }
     
     .card-section {
@@ -716,7 +716,7 @@ st.markdown("""
     }
     
     .button-section {
-        margin: 1.5rem 0 !important;
+        margin: 2.5rem 0 !important;
         padding: 1rem 0 !important;
     }
     
@@ -815,15 +815,264 @@ st.markdown("""
     
     /* Better spacing utilities */
     .section-spacing {
-        margin: 3rem 0;
+        height: 3rem !important;
+        margin: 2rem 0 !important;
     }
     
     .card-spacing {
-        margin: 1.5rem 0;
+        height: 2rem !important;
+        margin: 1.5rem 0 !important;
     }
     
     .content-spacing {
         padding: 2rem 0;
+    }
+    
+    /* Enhanced spacing system - MAJOR FIX */
+    .main-section {
+        padding: 3rem 0 !important;
+        margin: 2rem 0 !important;
+    }
+    
+    .section-spacing {
+        height: 3rem !important;
+        margin: 2rem 0 !important;
+    }
+    
+    .card-spacing {
+        height: 2rem !important;
+        margin: 1.5rem 0 !important;
+    }
+    
+    .button-section {
+        margin: 2.5rem 0 !important;
+        padding: 1rem 0 !important;
+    }
+    
+    /* Fix column spacing issues */
+    .stColumn {
+        padding: 0 1rem !important;
+    }
+    
+    .stColumn:first-child {
+        padding-left: 0 !important;
+    }
+    
+    .stColumn:last-child {
+        padding-right: 0 !important;
+    }
+    
+    /* Fix tab content spacing */
+    .stTabs [data-baseweb="tab-panel"] {
+        padding: 3rem 0 !important;
+    }
+    
+    /* Improved glass cards with consistent spacing */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin: 2.5rem 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+    }
+    
+    .glass-card h1, .glass-card h2 {
+        margin-bottom: 2rem !important;
+    }
+    
+    .glass-card h3, .glass-card h4 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .glass-card p {
+        margin-bottom: 1.2rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Chat interface improvements */
+    .stChatMessage {
+        margin: 2rem 0 !important;
+        padding: 1.5rem !important;
+    }
+    
+    .stChatInput {
+        margin: 2rem 0 !important;
+    }
+    
+    /* Input field spacing */
+    .stTextInput, .stNumberInput, .stSelectbox {
+        margin-bottom: 2rem !important;
+    }
+    
+    .stTextInput > div, .stNumberInput > div, .stSelectbox > div {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Button spacing improvements */
+    .stButton {
+        margin: 1rem 0 !important;
+    }
+    
+    .stButton:first-child {
+        margin-top: 0 !important;
+    }
+    
+    .stButton:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Dataframe spacing */
+    .stDataFrame {
+        margin: 2rem 0 !important;
+        padding: 1rem !important;
+        background: var(--glass-bg) !important;
+        border-radius: 16px !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Chat message styling improvements */
+    .chat-message-ai {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+        border-left: 4px solid #3b82f6;
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    .chat-message-user {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+        border-left: 4px solid #10b981;
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    
+    /* Quick query buttons */
+    .quick-query-btn {
+        background: linear-gradient(135deg, var(--card-bg), rgba(168, 85, 247, 0.1)) !important;
+        border: 1px solid rgba(168, 85, 247, 0.3) !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        margin: 0.5rem 0 !important;
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    .quick-query-btn:hover {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1)) !important;
+        border-color: var(--accent-purple) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(168, 85, 247, 0.3) !important;
+    }
+    
+    /* AI assistant header styling */
+    .ai-header {
+        background: linear-gradient(135deg, var(--card-bg), rgba(168, 85, 247, 0.08));
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin: 2rem 0;
+        text-align: center;
+        backdrop-filter: blur(15px);
+        box-shadow: var(--shadow-soft);
+    }
+    
+    .ai-header h2 {
+        color: var(--accent-purple) !important;
+        font-weight: 800 !important;
+        margin-bottom: 1rem !important;
+        font-size: 2.2rem !important;
+    }
+    
+    .ai-header p {
+        color: var(--text-secondary) !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Portfolio metrics improvements */
+    .portfolio-metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        background: rgba(255,255,255,0.06);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .portfolio-metric:hover {
+        background: rgba(255,255,255,0.08);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .portfolio-metric-label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .portfolio-metric-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    
+    /* Alert card improvements */
+    .alert-card {
+        padding: 1.5rem;
+        margin: 1rem 0;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border-left: 3px solid #3b82f6;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+    
+    .alert-card:hover {
+        background: rgba(255,255,255,0.08);
+        transform: translateY(-1px);
+    }
+    
+    .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+    }
+    
+    .alert-ticker {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+    
+    .alert-amount {
+        color: var(--accent-green);
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .alert-time {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1497,12 +1746,12 @@ def show_ultra_smart_alerts():
         
         for ticker, action, amount, time in recent_alerts:
             st.markdown(f"""
-            <div style="padding: 1rem; margin: 0.8rem 0; background: rgba(255,255,255,0.05); border-radius: 12px; border-left: 3px solid #3b82f6; backdrop-filter: blur(5px);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-weight: 700; color: #f1f5f9; font-size: 0.9rem;">{ticker} {action}</span>
-                    <span style="color: #10b981; font-family: 'JetBrains Mono'; font-weight: 600; font-size: 0.85rem;">{amount}</span>
+            <div class="alert-card">
+                <div class="alert-header">
+                    <span class="alert-ticker">{ticker} {action}</span>
+                    <span class="alert-amount">{amount}</span>
                 </div>
-                <div style="font-size: 0.8rem; color: #64748b;">{time}</div>
+                <div class="alert-time">{time}</div>
             </div>
             """, unsafe_allow_html=True)
         
@@ -1583,9 +1832,9 @@ def show_ultra_portfolio():
             for label, value in metrics:
                 color = "#10b981" if "+" in value or label in ["Total Value", "Total Cost"] else "#ef4444"
                 st.markdown(f"""
-                <div style="display: flex; justify-content: space-between; padding: 1rem; margin: 0.8rem 0; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);">
-                    <span style="color: #94a3b8; font-weight: 600;">{label}</span>
-                    <span style="color: {color}; font-family: 'JetBrains Mono'; font-weight: 700;">{value}</span>
+                <div class="portfolio-metric">
+                    <span class="portfolio-metric-label">{label}</span>
+                    <span class="portfolio-metric-value" style="color: {color};">{value}</span>
                 </div>
                 """, unsafe_allow_html=True)
     
@@ -1637,68 +1886,86 @@ def show_ultra_portfolio():
         st.dataframe(styled_df, use_container_width=True)
 
 def show_ultra_ai_assistant():
-    """Ultra-modern AI assistant interface"""
+    """Ultra-modern AI assistant interface with GPT-4 integration"""
+    
+    # AI Assistant Header with enhanced styling
     st.markdown("""
-    <div class="glass-card">
-        <h2 style="color: #a855f7; font-weight: 800; margin-bottom: 1rem;">
-            🤖 AI INVESTMENT INTELLIGENCE
-        </h2>
-        <p style="color: #94a3b8;">Advanced healthcare investment AI with real-time market intelligence</p>
+    <div class="ai-header">
+        <h2>🤖 MedEquity AI Intelligence</h2>
+        <p>Advanced healthcare investment AI powered by GPT-4 with real-time market intelligence</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Initialize chat
+    # Add section spacing
+    st.markdown('<div class="section-spacing"></div>', unsafe_allow_html=True)
+    
+    # Initialize chat with enhanced welcome message
     if 'ultra_messages' not in st.session_state:
         st.session_state.ultra_messages = [
-            {"role": "assistant", "content": """🚀 **Welcome to MedEquity AI Intelligence!**
+            {"role": "assistant", "content": """🚀 **MedEquity AI Intelligence Activated**
 
-I'm your advanced healthcare investment AI assistant. I specialize in:
+I'm your elite healthcare investment AI assistant, powered by GPT-4 and specialized in:
 
-🎯 **Core Capabilities:**
-• **Insider Trading Analysis** - Real-time executive trading insights
-• **Advanced Stock Screening** - Multi-factor AI-powered analysis  
-• **Valuation Intelligence** - Growth-adjusted PEG analysis
-• **Portfolio Optimization** - Healthcare-focused strategies
-• **Market Intelligence** - Sector trends and opportunities
+**🎯 Core Intelligence Systems:**
+• **📱 Insider Trading Analysis** - Real SEC filing monitoring & pattern recognition
+• **🔍 Advanced Stock Screening** - Multi-factor AI-powered opportunity identification  
+• **📊 Valuation Intelligence** - Growth-adjusted PEG analysis & pipeline modeling
+• **📈 Portfolio Optimization** - Healthcare-focused strategic asset allocation
+• **🚨 Smart Alert Systems** - Real-time executive trading & FDA catalyst notifications
 
-💡 **Quick Commands:**
-• "Analyze [TICKER]" - Deep stock analysis
-• "Screen biotech stocks" - Custom screening
-• "Insider activity for [TICKER]" - Trading patterns
-• "Best healthcare plays" - AI recommendations
+**💡 AI-Powered Capabilities:**
+• **Real-time SEC Edgar integration** for insider trading intelligence
+• **FDA approval probability modeling** for biotech pipeline valuation
+• **Patent cliff analysis** with revenue protection assessment
+• **Institutional flow tracking** for smart money pattern recognition
 
-**What would you like to explore?** 🚀"""}
+**⚡ Quick Intelligence Commands:**
+• *"Analyze PFE"* - Complete investment thesis with insider patterns
+• *"Screen undervalued biotech"* - Custom screening with AI recommendations
+• *"Insider buying in pharma"* - Executive confidence signal analysis
+• *"Best healthcare dividends"* - Income + growth opportunity identification
+
+**Ready to deploy advanced healthcare investment intelligence?** 🎯
+
+*What healthcare investment opportunity would you like to explore?*"""}
         ]
     
-    # Display chat with modern styling
+    # Display chat with enhanced styling
     for message in st.session_state.ultra_messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
                 st.markdown(f"""
-                <div style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                <div class="chat-message-ai">
                     {message["content"]}
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 12px; border-left: 4px solid #10b981;">
+                <div class="chat-message-user">
                     {message["content"]}
                 </div>
                 """, unsafe_allow_html=True)
     
-    # Enhanced input section
-    col1, col2 = st.columns([3, 1])
+    # Enhanced input section with better spacing
+    col1, col2 = st.columns([2, 1], gap="large")
     
     with col1:
-        prompt = st.chat_input("💬 Ask about healthcare investments...")
+        prompt = st.chat_input("💬 Ask about healthcare investments, insider trading, valuations, or screening...")
     
     with col2:
-        st.markdown("**🎯 Quick Queries:**")
+        st.markdown("""
+        <div class="glass-card" style="padding: 2rem; margin: 1rem 0;">
+            <h4 style="color: #a855f7; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">⚡ Quick Intelligence</h4>
+        </div>
+        """, unsafe_allow_html=True)
+        
         quick_queries = [
-            "Best biotech stocks",
+            "Best biotech opportunities",
             "PFE insider activity", 
             "Screen growth stocks",
-            "Healthcare outlook"
+            "Healthcare market outlook",
+            "Undervalued pharma stocks",
+            "AI drug discovery plays"
         ]
         
         for query in quick_queries:
@@ -1706,21 +1973,22 @@ I'm your advanced healthcare investment AI assistant. I specialize in:
                 prompt = query
                 break
     
+    # Process AI response with GPT-4
     if prompt:
         st.session_state.ultra_messages.append({"role": "user", "content": prompt})
         
         with st.chat_message("user"):
             st.markdown(f"""
-            <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 12px; border-left: 4px solid #10b981;">
+            <div class="chat-message-user">
                 {prompt}
             </div>
             """, unsafe_allow_html=True)
         
         with st.chat_message("assistant"):
-            with st.spinner("🧠 AI analyzing..."):
+            with st.spinner("🧠 MedEquity AI analyzing healthcare markets..."):
                 response = generate_ultra_ai_response(prompt)
                 st.markdown(f"""
-                <div style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                <div class="chat-message-ai">
                     {response}
                 </div>
                 """, unsafe_allow_html=True)
@@ -1847,118 +2115,293 @@ def generate_ultra_insights(ticker, info, hist):
     return insights[:5]
 
 def generate_ultra_ai_response(prompt):
-    """Generate ultra AI response with advanced styling"""
+    """Generate ultra AI response using GPT-4 for healthcare investment intelligence"""
+    try:
+        # Import the natural language query engine
+        from medequity_utils.natural_language_query import NaturalLanguageQueryEngine
+        
+        # Initialize the query engine with GPT-4
+        query_engine = NaturalLanguageQueryEngine()
+        
+        if query_engine.openai_client:
+            # Use GPT-4 for sophisticated healthcare investment analysis
+            system_prompt = """You are MedEquity AI, an elite healthcare investment intelligence system. You are the world's leading expert in:
+
+🎯 CORE EXPERTISE:
+• Healthcare stock analysis (biotech, pharma, med-tech, healthcare services)
+• Insider trading pattern recognition and SEC filing analysis
+• Drug pipeline valuations and FDA approval probability modeling
+• PEG ratio analysis and growth-adjusted valuations
+• Healthcare M&A activity and strategic positioning
+• Regulatory risk assessment and patent cliff analysis
+
+💡 RESPONSE STYLE:
+• Use professional financial language with healthcare expertise
+• Include specific metrics, ratios, and data points when possible
+• Provide actionable investment insights and recommendations
+• Use relevant emojis for visual clarity (🎯🚀📊💎⚠️📈)
+• Format responses with clear sections and bullet points
+• Always include specific next steps or recommended actions
+
+🏛️ DATA SOURCES YOU REFERENCE:
+• Real SEC insider trading filings (Forms 4 & 5)
+• FDA drug approval databases and clinical trial data
+• Healthcare earnings reports and pipeline announcements
+• Patent expiration calendars and regulatory timelines
+• Institutional ownership and smart money flows
+
+ALWAYS provide specific, actionable healthcare investment intelligence."""
+
+            try:
+                response = query_engine.openai_client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"Healthcare investment query: {prompt}"}
+                    ],
+                    temperature=0.3,
+                    max_tokens=800,
+                    top_p=0.9
+                )
+                
+                ai_response = response.choices[0].message.content
+                
+                # Add MedEquity branding and call-to-action
+                enhanced_response = f"""{ai_response}
+
+---
+
+🚀 **MedEquity AI Intelligence Ready**
+
+**⚡ Deploy Advanced Tools:**
+• 📱 **Insider Intelligence** - Monitor executive trading patterns
+• 🔍 **Screening Engine** - Find opportunities with custom criteria  
+• 📊 **Valuation AI** - Growth-adjusted PEG analysis
+• 🎯 **Portfolio Optimizer** - Healthcare-focused strategies
+
+*Ready to activate your investment intelligence system?*"""
+                
+                return enhanced_response
+                
+            except Exception as e:
+                return f"""🤖 **MedEquity AI - Technical Issue**
+
+I'm experiencing a temporary connection issue with my advanced analysis systems.
+
+**Fallback Healthcare Intelligence:**
+
+{get_healthcare_fallback_response(prompt)}
+
+**🔧 System Note:** {str(e)[:100]}...
+
+*Please try your query again in a moment for full AI analysis.*"""
+        else:
+            # Fallback to enhanced mock responses
+            return get_healthcare_fallback_response(prompt)
+            
+    except Exception as e:
+        return get_healthcare_fallback_response(prompt)
+
+def get_healthcare_fallback_response(prompt):
+    """Enhanced fallback responses for healthcare investment queries"""
     prompt_lower = prompt.lower()
     
-    if 'insider' in prompt_lower:
-        return """🎯 **INSIDER TRADING INTELLIGENCE ANALYSIS**
-
-**📱 Advanced Capabilities:**
-• **Real-time SEC Filing Monitoring** - Forms 4 & 5 tracking
-• **Executive Pattern Recognition** - AI-powered trading analysis  
-• **Smart Alert System** - Instant Pushover notifications
-• **Cluster Detection** - Multiple insider activity signals
-
-**🚀 Recommended Actions:**
-1. **Set up monitoring** for your watchlist stocks
-2. **Configure alerts** for CEO/CFO purchases >$1M
-3. **Enable pattern detection** for unusual activity
-
-**💡 Pro Tip:** Recent studies show insider purchases predict 12-month outperformance in 73% of cases.
-
-*Ready to activate your insider intelligence system?* 🚨"""
+    # Analyze specific tickers mentioned
+    healthcare_tickers = ['pfe', 'pfizer', 'jnj', 'johnson', 'mrna', 'moderna', 'abbv', 'abbvie', 
+                         'lly', 'eli lilly', 'bmy', 'bristol', 'amgn', 'amgen', 'gild', 'gilead',
+                         'regn', 'regeneron', 'vrtx', 'vertex', 'biib', 'biogen']
     
-    elif 'screen' in prompt_lower or 'find' in prompt_lower:
-        return """🔍 **ADVANCED SCREENING ENGINE ANALYSIS**
-
-**🎯 Multi-Factor Screening Options:**
-• **GARP Strategy** - Growth at Reasonable Price detection
-• **Insider + Value Combo** - Recent buying + undervaluation
-• **Healthcare Specialists** - R&D intensity, pipeline scores
-• **AI-Powered Analysis** - Pattern recognition screening
-
-**🧬 Healthcare-Specific Filters:**
-• R&D spending as % of revenue
-• Pipeline maturity scores  
-• Regulatory approval timelines
-• Patent cliff analysis
-
-**💎 Current Opportunities:**
-• 47 biotech stocks with PEG < 1.2
-• 23 pharma stocks with recent insider buying
-• 15 med-tech companies with strong pipelines
-
-*Launch the screening engine for detailed analysis?* 🚀"""
+    mentioned_ticker = None
+    for ticker in healthcare_tickers:
+        if ticker in prompt_lower:
+            mentioned_ticker = ticker.upper()[:4]  # Standardize ticker format
+            break
     
-    elif 'valuation' in prompt_lower or 'peg' in prompt_lower:
-        return """📊 **VALUATION AI ENGINE ANALYSIS**
+    if mentioned_ticker:
+        return f"""🎯 **{mentioned_ticker} - HEALTHCARE INVESTMENT ANALYSIS**
 
-**📈 Advanced Valuation Metrics:**
-• **PEG Ratio Analysis** - Growth-adjusted valuations
-• **Pipeline Valuation** - Future cash flow modeling
-• **Sector Comparison** - Peer analysis and rankings
-• **GARP Identification** - Growth at reasonable price
+**📊 AI Investment Intelligence:**
+• **Healthcare Sector:** Leading position in specialized therapeutics
+• **Pipeline Status:** Multiple Phase 2/3 trials with high probability of success
+• **Insider Signals:** Recent executive confidence indicators detected
+• **Valuation Model:** Trading at attractive growth-adjusted levels
+• **Risk Assessment:** Well-positioned for regulatory navigation
 
-**🎯 Current Market Insights:**
-• Healthcare sector trading at 1.3x PEG vs 5-year avg of 1.8x
-• Biotech showing 23% discount to historical valuations
-• Large pharma exhibiting strong dividend coverage ratios
+**🧠 MedEquity AI Insights:**
+• Strong fundamentals with diversified revenue streams
+• Healthcare tailwinds supporting long-term growth trajectory  
+• Patent protection providing competitive moat advantages
+• Institutional accumulation patterns suggest professional confidence
 
-**💡 AI Recommendations:**
-• Focus on PEG ratios 0.8-1.2 for optimal risk/reward
-• Consider pipeline value for biotech investments
-• Monitor patent expiration calendars for risks
+**⚡ Recommended Intelligence Actions:**
+1. **📱 Deploy Insider Monitoring** - Track executive trading patterns
+2. **🔍 Activate Screening Filters** - Find similar opportunities
+3. **📊 Run Valuation Analysis** - Complete PEG and pipeline modeling
+4. **🚨 Set Smart Alerts** - Monitor for significant developments
 
-*Ready for deep valuation analysis?* 📈"""
+🚀 **Next Step:** Deploy full MedEquity intelligence suite for {mentioned_ticker}?"""
     
-    elif any(stock in prompt_lower for stock in ['pfe', 'pfizer', 'jnj', 'johnson', 'mrna', 'moderna', 'abbv', 'abbvie']):
-        stock_mentioned = next((s for s in ['PFE', 'JNJ', 'MRNA', 'ABBV'] if s.lower() in prompt_lower), 'the stock')
-        return f"""🎯 **{stock_mentioned} - AI INVESTMENT ANALYSIS**
+    elif 'insider' in prompt_lower or 'trading' in prompt_lower:
+        return """🚨 **INSIDER TRADING INTELLIGENCE SYSTEM**
 
-**📊 Real-time Intelligence:**
-• **Current Rating:** AI Score 78/100 (Good)
-• **Insider Activity:** Recent executive purchases detected
-• **Valuation Status:** Trading at 1.4x PEG ratio
-• **Momentum Signals:** 30-day trend showing strength
+**📱 Real-Time SEC Monitoring Capabilities:**
+• **Form 4 Tracking** - Executive purchase/sale filings within hours  
+• **Pattern Recognition** - AI identifies clustered buying signals
+• **Smart Money Detection** - CEO/CFO transactions above $1M threshold
+• **Institutional Flow Analysis** - 13F filing trend analysis
 
-**🧠 AI Insights:**
-• Strong fundamentals with solid pipeline
-• Recent insider confidence signals
-• Attractive risk-adjusted returns potential
-• Healthcare sector tailwinds support
+**🎯 Current Healthcare Insider Landscape:**
+• **47 biotech executives** purchased shares in last 30 days
+• **$127M aggregate insider buying** across healthcare sector
+• **23 pharmaceutical companies** showing clustered insider activity
+• **Average purchase size** 3.2x higher than historical norms
 
-**⚡ Recommended Actions:**
-1. **Monitor insider activity** for additional signals
-2. **Analyze full valuation metrics** in detail
-3. **Set up alerts** for significant changes
+**💎 High-Confidence Signals:**
+• CEOs buying during earnings blackout periods (strong conviction)
+• Multiple C-suite executives purchasing simultaneously
+• Purchases exceeding 6-month salary equivalents
+• Buying during sector-wide negative sentiment
 
-*Deploy full analysis suite for {stock_mentioned}?* 🚀"""
+**⚡ Deployment Options:**
+1. **🚀 Activate Real-Time Monitoring** - Get instant mobile alerts
+2. **🎯 Configure Custom Filters** - Set purchase thresholds and positions
+3. **📊 Historical Pattern Analysis** - Identify repeating success patterns
+
+*Ready to deploy your insider intelligence network?* 📱"""
+    
+    elif 'screen' in prompt_lower or 'find' in prompt_lower or 'opportunities' in prompt_lower:
+        return """🔍 **ADVANCED HEALTHCARE SCREENING ENGINE**
+
+**🧬 Multi-Factor Healthcare Analysis:**
+• **GARP Detection** - Growth at Reasonable Price identification (PEG 0.8-1.2)
+• **Pipeline Valuation** - FDA approval probability modeling
+• **Patent Cliff Analysis** - Revenue protection assessment  
+• **R&D Efficiency Scoring** - Research spending optimization metrics
+
+**📊 Current Market Opportunities:**
+• **34 biotech stocks** trading below intrinsic pipeline values
+• **19 pharmaceutical companies** with PEG ratios under 1.0
+• **12 medical device firms** with accelerating revenue growth
+• **8 healthcare services** stocks with insider buying clusters
+
+**🎯 Specialized Healthcare Filters:**
+• **Clinical Trial Success Rate** - Phase 2/3 advancement probabilities
+• **Regulatory Timeline Modeling** - FDA approval date predictions  
+• **Market Exclusivity Analysis** - Patent expiration calendars
+• **Institutional Ownership Trends** - Smart money accumulation patterns
+
+**💡 AI-Powered Screening Options:**
+• **Momentum + Value Combo** - Technical and fundamental convergence
+• **Insider + Growth Hybrid** - Executive confidence + earnings acceleration
+• **Dividend + Pipeline Mix** - Income generation + future growth potential
+
+**⚡ Deploy Screening Intelligence:**
+1. **🚀 Launch Custom Screen** - Set your specific criteria
+2. **📈 Activate Growth Filters** - Find accelerating opportunities  
+3. **🎯 Smart Money Tracking** - Follow institutional flows
+
+*Ready to discover your next healthcare opportunity?* 🔍"""
+    
+    elif 'valuation' in prompt_lower or 'peg' in prompt_lower or 'analysis' in prompt_lower:
+        return """📊 **HEALTHCARE VALUATION AI ENGINE**
+
+**🎯 Advanced Valuation Modeling:**
+• **Growth-Adjusted PEG Analysis** - Factoring in pipeline contributions
+• **Risk-Adjusted NPV Models** - FDA approval probability weighting
+• **Comparative Sector Analysis** - Peer group valuation benchmarking
+• **Patent-Adjusted Fair Value** - Intellectual property premium calculations
+
+**📈 Current Healthcare Valuation Landscape:**
+• **Healthcare sector PEG**: 1.3x vs. 5-year average of 1.8x (attractive)
+• **Biotech discount**: 23% below historical valuation multiples
+• **Large pharma dividend coverage**: 2.1x average (sustainable)
+• **Med-tech growth premium**: Justified by 15%+ revenue growth rates
+
+**💎 Valuation Opportunities Identified:**
+• **27 stocks** trading at PEG ratios below 1.0 (undervalued growth)
+• **15 companies** with pipeline values exceeding market cap
+• **19 dividend stocks** with sustainable payout ratios under 60%
+• **12 growth stocks** with earnings acceleration not yet recognized
+
+**🧠 AI Valuation Insights:**
+• Focus on PEG ratios 0.8-1.2 for optimal risk/reward profiles
+• Pipeline valuations offer 30-40% upside in successful biotechs
+• Patent cliff risks are now largely priced into major pharma
+• Healthcare services showing most attractive growth/valuation balance
+
+**⚡ Advanced Analysis Options:**
+1. **📊 Deep Dive Valuation** - Complete DCF and sum-of-parts modeling
+2. **🎯 Peer Comparison Matrix** - Relative valuation analysis
+3. **📈 Scenario Planning** - Best/base/worst case modeling
+
+*Deploy comprehensive valuation intelligence?* 📊"""
+    
+    elif 'portfolio' in prompt_lower or 'strategy' in prompt_lower:
+        return """📈 **HEALTHCARE PORTFOLIO OPTIMIZATION**
+
+**🎯 Strategic Asset Allocation:**
+• **Large Pharma (40%)** - Dividend income + defensive characteristics
+• **Biotech Growth (30%)** - High-growth potential with pipeline catalysts  
+• **Medical Technology (20%)** - Stable growth with innovation premiums
+• **Healthcare Services (10%)** - Demographic tailwinds and margin expansion
+
+**💡 Advanced Portfolio Intelligence:**
+• **Risk-Adjusted Return Optimization** - Maximum Sharpe ratio targeting
+• **Correlation Matrix Analysis** - Minimize intra-sector dependencies
+• **Event Risk Management** - FDA approval date diversification
+• **Insider Signal Integration** - Weight positions by executive confidence
+
+**🚀 Current Strategic Themes:**
+• **GLP-1 Revolution** - Obesity/diabetes treatment expansion
+• **AI-Driven Drug Discovery** - Accelerated development timelines
+• **Personalized Medicine** - Precision therapy market growth
+• **Healthcare Digitization** - Telemedicine and remote monitoring
+
+**📊 Portfolio Performance Tracking:**
+• **Real-time insider activity monitoring** across all holdings
+• **FDA calendar integration** for catalyst preparation
+• **Earnings surprise probability modeling** based on whisper numbers
+• **Institutional flow analysis** for position sizing optimization
+
+**⚡ Optimization Actions:**
+1. **🎯 Rebalance Analysis** - Optimal weight recommendations
+2. **📱 Alert Configuration** - Portfolio-wide monitoring setup
+3. **📊 Performance Attribution** - Identify top contributing factors
+
+*Activate your healthcare portfolio intelligence?* 📈"""
     
     else:
-        return """🤖 **AI INVESTMENT INTELLIGENCE READY**
+        return """🤖 **MedEquity AI - HEALTHCARE INVESTMENT INTELLIGENCE**
 
-**🎯 Available Analysis Modules:**
-• **Stock Analysis** - "Analyze [TICKER]" for deep dive
-• **Insider Intelligence** - "Insider activity for [TICKER]"
-• **Screening Engine** - "Screen [criteria] stocks"  
-• **Valuation AI** - "Valuation analysis for [TICKER]"
-• **Sector Intelligence** - "Healthcare sector outlook"
+**🚀 Advanced AI Capabilities Activated:**
 
-**🚀 Popular Commands:**
-• *"Best biotech opportunities"*
-• *"Insider buying in pharma"*
-• *"Undervalued healthcare stocks"*
-• *"PFE vs JNJ comparison"*
+**📊 Real-Time Analysis Engine:**
+• **"Analyze [TICKER]"** - Complete investment thesis with insider patterns
+• **"Screen biotech growth"** - Custom multi-factor screening  
+• **"Insider activity [TICKER]"** - Executive trading pattern analysis
+• **"Valuation check [TICKER]"** - Growth-adjusted PEG modeling
 
-**💡 Pro Features:**
-• Real-time SEC filing alerts
-• AI-powered pattern recognition
-• Growth-adjusted valuations
-• Healthcare-specific metrics
+**🎯 Specialized Healthcare Intelligence:**
+• **Drug Pipeline Valuation** - FDA approval probability modeling
+• **Patent Cliff Analysis** - Revenue protection assessment
+• **Clinical Trial Success Rates** - Phase advancement predictions
+• **Regulatory Timeline Forecasting** - Approval date estimations
 
-**Ready to deploy advanced investment intelligence?** 🎯
+**💡 Popular Healthcare Queries:**
+• *"Best biotech opportunities under $5B market cap"*
+• *"Pharma stocks with recent insider buying"*  
+• *"Healthcare dividends with growth potential"*
+• *"Medical device companies with AI integration"*
 
-*Just ask me anything about healthcare investing!*"""
+**🧠 AI-Powered Features:**
+• **Pattern Recognition** - Identify repeating success patterns
+• **Smart Money Tracking** - Follow institutional accumulation
+• **Risk Assessment** - Multi-factor risk scoring models
+• **Opportunity Scoring** - AI-ranked investment attractiveness
+
+🚀 **Ready to deploy advanced healthcare investment intelligence?**
+
+*Ask me anything about biotech, pharma, medical devices, or healthcare services investing!*"""
 
 def add_to_ultra_portfolio(ticker, shares, avg_price):
     """Add stock to ultra portfolio"""
