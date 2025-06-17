@@ -828,10 +828,10 @@ st.markdown("""
         padding: 2rem 0;
     }
     
-    /* CRITICAL LAYOUT FIXES */
+    /* CRITICAL LAYOUT FIXES - ENHANCED FOR FULL SCREEN */
     .main .block-container {
         max-width: 100% !important;
-        padding: 1rem 2rem !important;
+        padding: 2rem 5rem !important;
         margin: 0 auto !important;
         width: 100% !important;
     }
@@ -839,6 +839,7 @@ st.markdown("""
     .stApp {
         margin: 0 !important;
         padding: 0 !important;
+        max-width: 100% !important;
     }
     
     .element-container {
@@ -846,40 +847,30 @@ st.markdown("""
         max-width: none !important;
     }
     
-    /* Center content properly */
-    .block-container {
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        max-width: 100% !important;
-        margin: 0 auto !important;
-        width: 100% !important;
+    /* Full width columns with proper spacing */
+    [data-testid="column"] {
+        padding: 0 2rem !important;
     }
     
-    
-    /* CRITICAL LAYOUT FIXES */
-    .main .block-container {
-        max-width: 100% !important;
-        padding: 1rem 2rem !important;
-        margin: 0 auto !important;
-        width: 100% !important;
+    [data-testid="column"]:first-child {
+        padding-left: 0 !important;
     }
     
-    .stApp {
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    .element-container {
-        width: 100% !important;
-        max-width: none !important;
+    [data-testid="column"]:last-child {
+        padding-right: 0 !important;
     }
     
     /* Center content properly */
     .block-container {
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
+        padding-left: 5rem !important;
+        padding-right: 5rem !important;
         max-width: 100% !important;
         margin: 0 auto !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure plotly charts use full width */
+    .js-plotly-plot .plotly {
         width: 100% !important;
     }
     
@@ -1529,18 +1520,17 @@ def display_ultra_stock_analysis(ticker, info, hist):
     volume = hist['Volume'].iloc[-1]
     score = calculate_ultra_score(info)
     
-    # Create 5 column layout for metrics
-    col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
+    # Create 4 column layout for metrics with better spacing
+    col1, col2, col3, col4 = st.columns(4, gap="large")
     
     metrics_data = [
         ("PRICE", f"${current_price:.2f}", f"{price_change:+.2f}%", price_change >= 0),
         ("MARKET CAP", format_market_cap(market_cap), "", True),
         ("P/E RATIO", f"{pe_ratio:.1f}" if pe_ratio else "N/A", "", True),
-        ("VOLUME", format_volume(volume), "", True),
         ("SCORE", f"{score}/100", get_score_rating(score), True)
     ]
     
-    columns = [col1, col2, col3, col4, col5]
+    columns = [col1, col2, col3, col4]
     
     for i, (label, value, change, is_positive) in enumerate(metrics_data):
         with columns[i]:
@@ -1557,8 +1547,8 @@ def display_ultra_stock_analysis(ticker, info, hist):
     # Add spacing between metrics and analysis
     st.markdown('<div class="section-spacing"></div>', unsafe_allow_html=True)
     
-    # Advanced analysis sections
-    col1, col2 = st.columns([2, 1], gap="large")
+    # Advanced analysis sections with better screen utilization
+    col1, col2 = st.columns([3, 2], gap="large")
     
     with col1:
         # Ultra-modern price chart
@@ -1668,7 +1658,7 @@ def create_ultra_price_chart(ticker, hist):
             font=dict(size=20, color='#f1f5f9', family='Inter'),
             x=0.5
         ),
-        height=500,
+        height=600,
         template="plotly_dark",
         paper_bgcolor='rgba(15, 23, 42, 0.8)',
         plot_bgcolor='rgba(30, 41, 59, 0.4)',
