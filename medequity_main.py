@@ -1295,7 +1295,7 @@ def display_ultra_market_overview():
                     <div style="font-size: 0.8rem; color: #64748b;">{name}</div>
                 </div>
                 """, unsafe_allow_html=True)
-            except:
+        except:
             st.markdown(f"""
             <div class="market-card">
                 <div class="market-symbol">⏳ {etf}</div>
@@ -1906,16 +1906,16 @@ def show_ultra_portfolio():
         
         col1, col2, col3 = st.columns(3, gap="medium")
     
-    with col1:
+        with col1:
             if st.button("🎯 SCREEN PORTFOLIO", use_container_width=True):
                 holdings_count = len(st.session_state.ultra_portfolio)
                 st.success(f"🔍 Screen all {holdings_count} holdings in the Advanced Screening Engine")
     
-    with col2:
+        with col2:
             if st.button("📈 VALUATION ANALYSIS", use_container_width=True):
                 st.success("📊 Analyze portfolio valuation in the Valuation AI Engine")
     
-    with col3:
+        with col3:
             if st.button("📱 SETUP ALERTS", use_container_width=True):
                 st.success("🚨 Configure portfolio alerts in the Insider Intelligence system")
         
@@ -2069,7 +2069,7 @@ def format_market_cap(market_cap):
         return f"${market_cap/1e9:.1f}B"
     elif market_cap > 1e6:
         return f"${market_cap/1e6:.0f}M"
-            else:
+    else:
         return f"${market_cap:.0f}"
 
 def format_volume(volume):
