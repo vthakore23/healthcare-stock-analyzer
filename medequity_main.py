@@ -23,38 +23,6 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     
-    /* CRITICAL LAYOUT FIXES - HIGHEST PRIORITY */
-    .main .block-container {
-        max-width: 100% !important;
-        padding: 1rem 2rem !important;
-        margin: 0 auto !important;
-        width: 100% !important;
-    }
-    
-    .element-container {
-        width: 100% !important;
-        max-width: none !important;
-    }
-    
-    .block-container {
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        max-width: 100% !important;
-        margin: 0 auto !important;
-        width: 100% !important;
-    }
-    
-    div[data-testid="stAppViewContainer"] {
-        width: 100% !important;
-        max-width: none !important;
-    }
-    
-    div[data-testid="stMainBlockContainer"] {
-        width: 100% !important;
-        max-width: none !important;
-        padding: 1rem 2rem !important;
-    }
-    
     :root {
         --primary-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         --secondary-bg: rgba(15, 23, 42, 0.9);
@@ -860,6 +828,34 @@ st.markdown("""
         padding: 2rem 0;
     }
     
+    /* CRITICAL LAYOUT FIXES */
+    .main .block-container {
+        max-width: 100% !important;
+        padding: 1rem 2rem !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+    }
+    
+    .stApp {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .element-container {
+        width: 100% !important;
+        max-width: none !important;
+    }
+    
+    /* Center content properly */
+    .block-container {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+    }
+    
+    
     /* Enhanced spacing system - MAJOR FIX */
     .main-section {
         padding: 3rem 0 !important;
@@ -1271,7 +1267,7 @@ def display_ultra_market_overview():
                     <div style="font-size: 0.8rem; color: #64748b;">{name}</div>
                 </div>
                 """, unsafe_allow_html=True)
-        except:
+            except:
             st.markdown(f"""
             <div class="market-card">
                 <div class="market-symbol">⏳ {etf}</div>
@@ -1368,7 +1364,7 @@ def create_ultra_stock_grid():
     cols = st.columns(4, gap="large")
     
     for i, (category, stocks) in enumerate(stock_categories.items()):
-                with cols[i]:
+        with cols[i]:
             # Category header with stunning styling
             st.markdown(f"""
             <div class="category-header">
