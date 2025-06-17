@@ -856,6 +856,34 @@ st.markdown("""
     }
     
     
+    /* CRITICAL LAYOUT FIXES */
+    .main .block-container {
+        max-width: 100% !important;
+        padding: 1rem 2rem !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+    }
+    
+    .stApp {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .element-container {
+        width: 100% !important;
+        max-width: none !important;
+    }
+    
+    /* Center content properly */
+    .block-container {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+    }
+    
+    
     /* Enhanced spacing system - MAJOR FIX */
     .main-section {
         padding: 3rem 0 !important;
@@ -2041,7 +2069,7 @@ def format_market_cap(market_cap):
         return f"${market_cap/1e9:.1f}B"
     elif market_cap > 1e6:
         return f"${market_cap/1e6:.0f}M"
-    else:
+            else:
         return f"${market_cap:.0f}"
 
 def format_volume(volume):
