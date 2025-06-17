@@ -21,7 +21,7 @@ except ImportError as e:
 
 # Page configuration
 st.set_page_config(
-    page_title="Healthcare Stock Analyzer",
+    page_title="MedEquity Analyzer - Advanced Healthcare Investment Intelligence",
     page_icon="💊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -213,8 +213,8 @@ if 'last_analysis' not in st.session_state:
 
 def main():
     # Header
-    st.markdown('<h1 class="main-header">💊 Healthcare Stock Analyzer</h1>', unsafe_allow_html=True)
-    st.markdown("### 🚀 Advanced Healthcare Investment Intelligence Platform")
+    st.markdown('<h1 class="main-header">💊 MedEquity Analyzer</h1>', unsafe_allow_html=True)
+    st.markdown("### 🚀 Advanced Healthcare Investment Intelligence Platform • December 2024")
     
     # Enhanced Sidebar
     with st.sidebar:
@@ -354,46 +354,77 @@ def create_welcome_section():
     st.markdown("""
     <div class="floating-panel">
         <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem; color: #1e293b;">
-            🌟 Welcome to Healthcare Stock Analyzer
+            🌟 Welcome to MedEquity Analyzer
         </h2>
         <p style="text-align: center; font-size: 1.2rem; color: #64748b; margin-bottom: 1.5rem;">
-            Your AI-powered healthcare investment intelligence platform for June 2025
+            Your AI-powered healthcare investment intelligence platform for December 2024
         </p>
         <div style="text-align: center; margin: 1.5rem 0;">
             <div style="display: inline-block; padding: 0.8rem 1.5rem; background: #667eea; 
                         border-radius: 6px; color: white; font-weight: 500; font-size: 0.9rem;">
-                ✨ Latest Data • Real-time Analysis • Professional Grade
+                ✨ Real-time Data • AI Predictions • Advanced Analytics
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Feature highlights
+    # Advanced feature highlights
+    st.markdown("### 🚀 Advanced Investment Intelligence Features")
+    
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
         <div class="financial-card">
-            <h3>🔍 Universal Analysis</h3>
-            <p>Analyze ANY stock ticker with intelligent healthcare detection</p>
+            <h3>🔮 AI-Powered Predictions</h3>
+            <p>Clinical trial success probability • Patent cliff analysis • Regulatory approval forecasting</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
         <div class="financial-card">
-            <h3>🧬 Healthcare Intelligence</h3>
-            <p>Advanced pipeline analysis, R&D metrics, and regulatory insights</p>
+            <h3>🏦 Smart Money Tracking</h3>
+            <p>Institutional ownership analysis • Insider activity monitoring • Healthcare fund exposure</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
         <div class="financial-card">
-            <h3>📊 Healthcare Score</h3>
-            <p>Proprietary 0-100 scoring system for investment decisions</p>
+            <h3>💬 Natural Language Queries</h3>
+            <p>Ask complex investment questions in plain English • Real-time company screening</p>
         </div>
         """, unsafe_allow_html=True)
+    
+    # New features showcase
+    st.markdown("### 🎯 New Advanced Features")
+    
+    feature_grid = st.columns(4)
+    
+    with feature_grid[0]:
+        st.markdown("""
+        **🔮 Trial Predictor**  
+        AI-powered clinical trial success predictions with stock impact analysis
+        """)
+    
+    with feature_grid[1]:
+        st.markdown("""
+        **📉 Patent Cliff Analyzer**  
+        Track patent expirations and biosimilar threats with revenue impact modeling
+        """)
+    
+    with feature_grid[2]:
+        st.markdown("""
+        **🏛️ Regulatory Intelligence**  
+        Real-time FDA data, approval predictions, and regulatory risk scoring
+        """)
+    
+    with feature_grid[3]:
+        st.markdown("""
+        **🎨 3D Pipeline Viz**  
+        Interactive 3D visualization of clinical pipelines and therapeutic clustering
+        """)
 
 def analyze_stock_comprehensive(ticker: str):
     """Comprehensive stock analysis with enhanced UI"""
