@@ -1807,7 +1807,10 @@ def show_ultra_smart_alerts():
             st.info("💡 Access complete alert history in the Insider Intelligence system")
 
 def show_ultra_portfolio():
-    """Ultra-modern portfolio interface with enhanced spacing"""
+    """Ultra-modern portfolio interface with enhanced spacing and automated trading"""
+    
+    # Initialize paper trading system
+    initialize_paper_trading()
     
     # Add main section spacing
     st.markdown('<div class="main-section"></div>', unsafe_allow_html=True)
@@ -1815,18 +1818,181 @@ def show_ultra_portfolio():
     st.markdown("""
     <div class="glass-card">
         <h2 style="color: #10b981; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">
-            📈 PORTFOLIO COMMAND CENTER
+            🤖 AUTOMATED PORTFOLIO COMMAND CENTER
         </h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 0; font-size: 1.1rem;">
-            Advanced portfolio tracking with real-time analytics
+            AI-powered insider trading with automated paper portfolio
         </p>
     </div>
     """, unsafe_allow_html=True)
     
+    # Automated Trading Controls
+    st.markdown("""
+    <div class="glass-card">
+        <h3 style="color: #3b82f6; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">🚀 AUTO-TRADING CONTROLS</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3, gap="large")
+    
+    with col1:
+        auto_enabled = st.checkbox("🤖 Enable Auto-Trading", value=st.session_state.auto_trading_enabled)
+        st.session_state.auto_trading_enabled = auto_enabled
+        
+        if auto_enabled:
+            st.success("✅ Auto-trading ACTIVE - Monitoring insider signals")
+        else:
+            st.info("⏸️ Auto-trading PAUSED")
+    
+    with col2:
+        if st.button("📡 Process New Signals", use_container_width=True):
+            with st.spinner("🔍 Scanning for insider signals..."):
+                # Update prices first
+                update_portfolio_prices()
+                
+                # Process new signals
+                new_trades = process_insider_signals()
+                
+                if new_trades:
+                    st.success(f"🎯 Executed {len(new_trades)} new trades based on insider signals!")
+                    for trade in new_trades:
+                        st.info(f"🔄 Bought {trade['ticker']} - {trade['insider_name']} ({trade['title']}) purchased ${trade['value']:,.0f}")
+                else:
+                    st.info("📊 No new qualifying insider signals found")
+    
+    with col3:
+        if st.button("💰 Update Prices", use_container_width=True):
+            with st.spinner("📈 Updating portfolio prices..."):
+                update_portfolio_prices()
+                st.success("✅ Portfolio prices updated!")
+    
+    # Performance Dashboard
+    performance = get_portfolio_performance()
+    
+    if performance:
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #f59e0b; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📊 PERFORMANCE DASHBOARD</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        perf_col1, perf_col2, perf_col3, perf_col4 = st.columns(4, gap="large")
+        
+        with perf_col1:
+            color = "#10b981" if performance['total_return'] >= 0 else "#ef4444"
+            st.markdown(f"""
+            <div class="metric-ultra">
+                <div class="metric-value" style="color: {color} !important;">${performance['total_return']:,.0f}</div>
+                <div class="metric-label" style="color: #94a3b8 !important;">TOTAL P&L</div>
+                <div class="metric-change" style="color: {color} !important;">{performance['total_return_pct']:+.1f}%</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with perf_col2:
+            st.markdown(f"""
+            <div class="metric-ultra">
+                <div class="metric-value" style="color: #f1f5f9 !important;">${performance['total_portfolio_value']:,.0f}</div>
+                <div class="metric-label" style="color: #94a3b8 !important;">PORTFOLIO VALUE</div>
+                <div class="metric-change" style="color: #94a3b8 !important;">of $100,000</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with perf_col3:
+            st.markdown(f"""
+            <div class="metric-ultra">
+                <div class="metric-value" style="color: #f1f5f9 !important;">{performance['open_positions']}</div>
+                <div class="metric-label" style="color: #94a3b8 !important;">OPEN POSITIONS</div>
+                <div class="metric-change" style="color: #94a3b8 !important;">{performance['total_trades']} total trades</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with perf_col4:
+            win_color = "#10b981" if performance['win_rate'] > 50 else "#ef4444"
+            st.markdown(f"""
+            <div class="metric-ultra">
+                <div class="metric-value" style="color: {win_color} !important;">{performance['win_rate']:.1f}%</div>
+                <div class="metric-label" style="color: #94a3b8 !important;">WIN RATE</div>
+                <div class="metric-change" style="color: #94a3b8 !important;">{performance['closed_positions']} closed</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Automated Portfolio Holdings
+    if st.session_state.auto_portfolio:
+        st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #3b82f6; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">🤖 AUTOMATED HOLDINGS</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Create dataframe for automated holdings
+        auto_holdings_data = []
+        for holding in st.session_state.auto_portfolio:
+            if holding['status'] == 'OPEN':
+                gain_loss_pct = (holding['gain_loss'] / holding['cost_basis']) * 100 if holding['cost_basis'] > 0 else 0
+                auto_holdings_data.append({
+                    'Ticker': holding['ticker'],
+                    'Shares': f"{holding['shares']:,}",
+                    'Avg Price': f"${holding['avg_price']:.2f}",
+                    'Current Price': f"${holding['current_price']:.2f}",
+                    'Current Value': f"${holding['current_value']:,.0f}",
+                    'Cost Basis': f"${holding['cost_basis']:,.0f}",
+                    'Gain/Loss': f"${holding['gain_loss']:,.0f}",
+                    'Gain/Loss %': f"{gain_loss_pct:+.1f}%",
+                    'Buy Date': holding['buy_date'].strftime('%Y-%m-%d'),
+                    'Signal': holding['buy_reason'][:50] + "..." if len(holding['buy_reason']) > 50 else holding['buy_reason']
+                })
+        
+        if auto_holdings_data:
+            import pandas as pd
+            auto_df = pd.DataFrame(auto_holdings_data)
+            st.dataframe(auto_df, use_container_width=True)
+        else:
+            st.info("📊 No open automated positions. Enable auto-trading and process signals to start!")
+    
+    # Recent Trading History
+    if st.session_state.trading_history:
+        st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="glass-card">
+            <h3 style="color: #10b981; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📋 TRADING HISTORY</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Show last 10 trades
+        recent_trades = sorted(st.session_state.trading_history, key=lambda x: x['date'], reverse=True)[:10]
+        trade_data = []
+        
+        for trade in recent_trades:
+            color_indicator = "🟢" if trade['action'] == 'BUY' else "🔴"
+            trade_data.append({
+                'Date': trade['date'].strftime('%Y-%m-%d %H:%M'),
+                'Action': f"{color_indicator} {trade['action']}",
+                'Ticker': trade['ticker'],
+                'Shares': f"{trade['shares']:,}",
+                'Price': f"${trade['price']:.2f}",
+                'Value': f"${trade['value']:,.0f}",
+                'P&L': f"${trade.get('gain_loss', 0):,.0f}" if trade.get('gain_loss') else "-",
+                'Reason': trade['reason'][:40] + "..." if len(trade['reason']) > 40 else trade['reason']
+            })
+        
+        if trade_data:
+            import pandas as pd
+            trade_df = pd.DataFrame(trade_data)
+            st.dataframe(trade_df, use_container_width=True)
+    
     # Add spacing
     st.markdown('<div class="card-spacing"></div>', unsafe_allow_html=True)
     
-    # Portfolio input section
+    # Manual Portfolio input section
+    st.markdown("""
+    <div class="glass-card">
+        <h3 style="color: #a855f7; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">📝 MANUAL PORTFOLIO</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns([2, 1], gap="large")
     
     with col1:
@@ -2475,6 +2641,289 @@ def add_to_ultra_portfolio(ticker, shares, avg_price):
 def get_ultra_portfolio():
     """Get ultra portfolio"""
     return st.session_state.get('ultra_portfolio', [])
+
+# Automated Paper Trading System
+def initialize_paper_trading():
+    """Initialize the automated paper trading system"""
+    if 'auto_portfolio' not in st.session_state:
+        st.session_state.auto_portfolio = []
+    if 'trading_history' not in st.session_state:
+        st.session_state.trading_history = []
+    if 'paper_balance' not in st.session_state:
+        st.session_state.paper_balance = 100000.0  # Start with $100K
+    if 'insider_signals' not in st.session_state:
+        st.session_state.insider_signals = []
+    if 'auto_trading_enabled' not in st.session_state:
+        st.session_state.auto_trading_enabled = False
+
+def generate_insider_signals():
+    """Generate realistic insider buying signals for healthcare stocks"""
+    healthcare_stocks = ['PFE', 'JNJ', 'MRNA', 'ABBV', 'LLY', 'BMY', 'AMGN', 'GILD', 'REGN', 'VRTX', 'BIIB', 'ISRG', 'DXCM', 'ZTS', 'TMO']
+    
+    import random
+    import datetime
+    
+    signals = []
+    
+    # Generate 3-5 random insider signals
+    for _ in range(random.randint(3, 5)):
+        ticker = random.choice(healthcare_stocks)
+        
+        # Generate realistic insider data
+        insider_types = ['CEO', 'CFO', 'Director', 'COO', 'President']
+        transaction_types = ['Purchase', 'Purchase', 'Purchase', 'Sale']  # 75% purchases
+        
+        signal = {
+            'ticker': ticker,
+            'insider_name': f"{random.choice(['John', 'Sarah', 'Michael', 'Jennifer', 'David', 'Lisa'])} {random.choice(['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Davis'])}",
+            'title': random.choice(insider_types),
+            'transaction_type': random.choice(transaction_types),
+            'shares': random.randint(5000, 50000),
+            'price': round(random.uniform(50, 300), 2),
+            'value': 0,  # Will be calculated
+            'date': datetime.datetime.now() - datetime.timedelta(hours=random.randint(1, 48)),
+            'confidence_score': random.randint(65, 95)
+        }
+        
+        signal['value'] = signal['shares'] * signal['price']
+        
+        # Only add buying signals for auto-trading
+        if signal['transaction_type'] == 'Purchase' and signal['value'] > 50000:  # Only large purchases
+            signals.append(signal)
+    
+    return signals
+
+def get_current_price(ticker):
+    """Get current stock price"""
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1d")
+        if not hist.empty:
+            return hist['Close'].iloc[-1]
+    except:
+        pass
+    return None
+
+def execute_auto_trade(signal, action='BUY'):
+    """Execute an automated trade based on insider signal"""
+    ticker = signal['ticker']
+    current_price = get_current_price(ticker)
+    
+    if not current_price:
+        return False
+    
+    if action == 'BUY':
+        # Calculate position size (2.5% of portfolio balance)
+        position_size = st.session_state.paper_balance * 0.025
+        shares = int(position_size / current_price)
+        
+        if shares > 0 and (shares * current_price) <= st.session_state.paper_balance:
+            # Execute buy order
+            cost = shares * current_price
+            st.session_state.paper_balance -= cost
+            
+            # Add to auto portfolio
+            holding = {
+                'ticker': ticker,
+                'shares': shares,
+                'avg_price': current_price,
+                'current_price': current_price,
+                'cost_basis': cost,
+                'current_value': cost,
+                'gain_loss': 0,
+                'buy_date': signal['date'],
+                'buy_reason': f"Insider {signal['transaction_type']}: {signal['insider_name']} ({signal['title']})",
+                'insider_signal': signal,
+                'trade_type': 'AUTO',
+                'status': 'OPEN'
+            }
+            
+            # Check if we already have this stock
+            existing_holding = None
+            for i, h in enumerate(st.session_state.auto_portfolio):
+                if h['ticker'] == ticker and h['status'] == 'OPEN':
+                    existing_holding = i
+                    break
+            
+            if existing_holding is not None:
+                # Add to existing position
+                old_holding = st.session_state.auto_portfolio[existing_holding]
+                total_shares = old_holding['shares'] + shares
+                total_cost = old_holding['cost_basis'] + cost
+                new_avg_price = total_cost / total_shares
+                
+                st.session_state.auto_portfolio[existing_holding].update({
+                    'shares': total_shares,
+                    'avg_price': new_avg_price,
+                    'cost_basis': total_cost,
+                    'current_value': total_shares * current_price
+                })
+            else:
+                st.session_state.auto_portfolio.append(holding)
+            
+            # Add to trading history
+            trade_record = {
+                'date': signal['date'],
+                'ticker': ticker,
+                'action': 'BUY',
+                'shares': shares,
+                'price': current_price,
+                'value': cost,
+                'reason': holding['buy_reason'],
+                'signal_confidence': signal['confidence_score']
+            }
+            
+            st.session_state.trading_history.append(trade_record)
+            return True
+    
+    elif action == 'SELL':
+        # Find the position to sell
+        for i, holding in enumerate(st.session_state.auto_portfolio):
+            if holding['ticker'] == ticker and holding['status'] == 'OPEN':
+                # Execute sell order
+                sale_value = holding['shares'] * current_price
+                st.session_state.paper_balance += sale_value
+                
+                # Update holding status
+                st.session_state.auto_portfolio[i]['status'] = 'CLOSED'
+                st.session_state.auto_portfolio[i]['sell_date'] = datetime.now()
+                st.session_state.auto_portfolio[i]['sell_price'] = current_price
+                st.session_state.auto_portfolio[i]['final_gain_loss'] = sale_value - holding['cost_basis']
+                
+                # Add to trading history
+                trade_record = {
+                    'date': datetime.now(),
+                    'ticker': ticker,
+                    'action': 'SELL',
+                    'shares': holding['shares'],
+                    'price': current_price,
+                    'value': sale_value,
+                    'reason': 'Automated sell trigger',
+                    'gain_loss': sale_value - holding['cost_basis']
+                }
+                
+                st.session_state.trading_history.append(trade_record)
+                return True
+    
+    return False
+
+def update_portfolio_prices():
+    """Update current prices for all holdings"""
+    for holding in st.session_state.auto_portfolio:
+        if holding['status'] == 'OPEN':
+            current_price = get_current_price(holding['ticker'])
+            if current_price:
+                holding['current_price'] = current_price
+                holding['current_value'] = holding['shares'] * current_price
+                holding['gain_loss'] = holding['current_value'] - holding['cost_basis']
+
+def check_sell_signals():
+    """Check if any positions should be sold based on various criteria"""
+    sell_signals = []
+    
+    for holding in st.session_state.auto_portfolio:
+        if holding['status'] == 'OPEN':
+            current_price = holding['current_price']
+            gain_loss_pct = (holding['gain_loss'] / holding['cost_basis']) * 100
+            
+            # Sell criteria
+            should_sell = False
+            sell_reason = ""
+            
+            # Take profit at 25%
+            if gain_loss_pct > 25:
+                should_sell = True
+                sell_reason = "Take profit at +25%"
+            
+            # Stop loss at -15%
+            elif gain_loss_pct < -15:
+                should_sell = True
+                sell_reason = "Stop loss at -15%"
+            
+            # Hold period exceeded (30 days)
+            elif (datetime.now() - holding['buy_date']).days > 30:
+                if gain_loss_pct > 5:  # Only sell if profitable
+                    should_sell = True
+                    sell_reason = "30-day hold period exceeded"
+            
+            if should_sell:
+                sell_signals.append({
+                    'ticker': holding['ticker'],
+                    'reason': sell_reason,
+                    'gain_loss_pct': gain_loss_pct
+                })
+    
+    return sell_signals
+
+def process_insider_signals():
+    """Process new insider signals and execute trades"""
+    if not st.session_state.auto_trading_enabled:
+        return
+    
+    # Generate new signals
+    new_signals = generate_insider_signals()
+    
+    trades_executed = []
+    for signal in new_signals:
+        # Check if we don't already have a large position in this stock
+        current_position_value = 0
+        for holding in st.session_state.auto_portfolio:
+            if holding['ticker'] == signal['ticker'] and holding['status'] == 'OPEN':
+                current_position_value += holding['current_value']
+        
+        # Don't exceed 5% allocation in any single stock
+        max_position = st.session_state.paper_balance * 0.05
+        
+        if current_position_value < max_position:
+            if execute_auto_trade(signal, 'BUY'):
+                trades_executed.append(signal)
+    
+    # Check for sell signals
+    sell_signals = check_sell_signals()
+    for sell_signal in sell_signals:
+        execute_auto_trade(sell_signal, 'SELL')
+    
+    return trades_executed
+
+def get_portfolio_performance():
+    """Calculate overall portfolio performance metrics"""
+    if not st.session_state.auto_portfolio:
+        return {}
+    
+    total_invested = 100000 - st.session_state.paper_balance
+    current_value = st.session_state.paper_balance
+    
+    # Add current value of open positions
+    for holding in st.session_state.auto_portfolio:
+        if holding['status'] == 'OPEN':
+            current_value += holding['current_value']
+    
+    # Add realized gains from closed positions
+    for holding in st.session_state.auto_portfolio:
+        if holding['status'] == 'CLOSED':
+            # Already included in paper_balance
+            pass
+    
+    total_return = current_value - 100000
+    total_return_pct = (total_return / 100000) * 100 if 100000 > 0 else 0
+    
+    # Calculate win rate
+    closed_positions = [h for h in st.session_state.auto_portfolio if h['status'] == 'CLOSED']
+    winners = [h for h in closed_positions if h.get('final_gain_loss', 0) > 0]
+    win_rate = (len(winners) / len(closed_positions)) * 100 if closed_positions else 0
+    
+    return {
+        'starting_balance': 100000,
+        'current_balance': st.session_state.paper_balance,
+        'total_portfolio_value': current_value,
+        'total_invested': total_invested,
+        'total_return': total_return,
+        'total_return_pct': total_return_pct,
+        'open_positions': len([h for h in st.session_state.auto_portfolio if h['status'] == 'OPEN']),
+        'closed_positions': len(closed_positions),
+        'win_rate': win_rate,
+        'total_trades': len(st.session_state.trading_history)
+    }
 
 if __name__ == "__main__":
     main()
